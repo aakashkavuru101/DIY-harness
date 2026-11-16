@@ -1,7 +1,7 @@
 # Ticket 09: the eval runner
 
 Status: open
-Blocked by: none (open questions Q2 and Q3 in `PLAN.md` must be answered first)
+Blocked by: none (built as Aakash answered Q2, Q3 and Q9 in `PLAN.md`; the Q2 cost ceiling is still his to set)
 GOAL lines: M2, DN3, C7 · Decisions: D16 (pending, M6) · Spec: docs/spec/06 sections 4 and 5, 03 section 2
 
 ## What it makes work
@@ -22,8 +22,10 @@ watch it fail.
   - It runs `claude -p` there with only this plugin loaded and none of the developer's settings, CLAUDE.md,
     memory, MCP servers, plugins or hooks. Each trial gets a throwaway config folder (`CLAUDE_CONFIG_DIR`, and
     `HOME` if needed), so the hooks' flags and the session files also stay out of the real `~/.claude`.
-    - Verify that sign-in still works with a throwaway config folder; if it does not, ask Aakash how to supply
-      credentials.
+    - Sign-in (Q9): the runner passes on `CLAUDE_CODE_OAUTH_TOKEN`, which Aakash exports in his shell after running
+      `claude setup-token` once. It never writes the token anywhere. It sets `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1`, so
+      the agent's tool subprocesses do not inherit the token. Verify what that variable strips, and record it in
+      `docs/adr/0003`.
     - Use `--strict-mcp-config`, `--setting-sources` and `--plugin-dir`.
     - Do not copy upstream's `--disable-slash-commands`, `--tools ""` or `--no-session-persistence`: they would
       block `/diy-harness`, every graded tool call, and `--resume`.
@@ -58,4 +60,7 @@ watch it fail.
 5. Case E4 (document 06 section 4) is in `evals/cases.jsonl` with its fixture. It runs end to end and fails,
    because the parent is still a stub, and the failing grader is named.
 6. A run stops at the cost ceiling and reports it. `evals/RESULTS.md` gets one line per run with its cost.
-7. `scripts/check.sh` exits 0, and its link and telemetry checks cover the new files.
+7. The token never lands on disk. Before it finishes, the runner checks every saved transcript and `evals/RESULTS.md`
+   for the token's value, and fails loudly if it finds it. A grader unit test covers this with a dummy token. A run
+   in which the agent runs `env` shows no token.
+8. `scripts/check.sh` exits 0, and its link and telemetry checks cover the new files.
