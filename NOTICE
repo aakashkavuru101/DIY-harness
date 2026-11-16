@@ -1,0 +1,9 @@
+DIY-harness
+Copyright (c) 2026 Aakash Kavuru. MIT licence, see LICENSE.
+
+DIY-harness vendors code from three MIT-licensed projects. Their licence texts are in
+vendor/LICENSES/.
+
+- mattpocock/skills, by Matt Pocock (vendor/LICENSES/mattpocock-skills)
+- DietrichGebert/ponytail, by DietrichGebert (vendor/LICENSES/ponytail)
+- ayghri/i-have-adhd, by Ayoub Ghriss (vendor/LICENSES/i-have-adhd)

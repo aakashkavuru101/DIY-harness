@@ -1,6 +1,6 @@
 # Ticket 01: check.sh tracer
 
-Status: open
+Status: closed
 Blocked by: none
 GOAL lines: M1, DN1 · Spec: docs/spec/06 section 2 (check 9), 03 section 6, 05 section 1
 
