@@ -1,6 +1,6 @@
 # Ticket 02: vendor the mattpocock engine skills
 
-Status: open
+Status: closed
 Blocked by: 01
 GOAL lines: M1, C8 · Spec: docs/spec/03 sections 2 and 6, 05 section 1, 06 section 2 (checks 1, 8)
 
