@@ -20,7 +20,7 @@ the milestone listed before building on it.
 | D8 | Ponytail's closing risk line | Keep it as the last line, after the next action | Confirmed | |
 | D9 | Ponytail level default | Full; ultra during S3 | Confirmed | |
 | D10 | Upstream sync policy | Pinned commits; `scripts/sync-upstream.sh` shows the diff; evals before a bump | Confirmed | |
-| D11 | Product name, GitHub organisation, language | Organisation: `aakashkavuru101`. Language: prompts in English, replies in the user's language. Name: `diy-harness` stays a working name (C9) | Organisation and language confirmed; name pending | No milestone set: Aakash chooses the name |
+| D11 | Product name, GitHub organisation, language | Organisation: `aakashkavuru101`. Language: prompts in English, replies in the user's language. Name: `diy-harness` stays a working name (C9). A rename must also change: the `DIY_HARNESS_OFF` variable, the `diy-harness/` folder under the Claude config folder, and the `diy-harness` text in the hook messages (`hooks/`) | Organisation and language confirmed; name pending | No milestone set: Aakash chooses the name |
 | D12 | Harness telemetry | Local JSON lines; export only by opt-in | Pending | M7 |
 | D13 | Content capture in telemetry | Off by default; opt-in with redaction | Pending | M7 |
 | D14 | Default autonomy tier | Tier B at L0 and L1 | Pending | M3 |

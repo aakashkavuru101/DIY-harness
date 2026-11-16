@@ -3,6 +3,7 @@
 CDPATH= cd -- "$(dirname "$0")/.." || exit 1
 fx=tests/fixtures
 fails=0 skips=0
+unset DIY_HARNESS_OFF  # the developer's own off switch must not change what the hook tests see
 
 fail() { echo "FAIL: $*"; fails=$((fails + 1)); }
 
@@ -220,7 +221,7 @@ expect "$v" nonzero "check hooks-wiring: .claude-plugin/plugin.json"
 b7="$tmp/budget"
 budget_fixture() {  # <bytes of i-have-adhd text>
   rm -rf "$b7" && mkdir -p "$b7/core" "$b7/hooks" "$b7/skills/ponytail" && cp -R "$fx/check9-pass/." "$b7/" &&
-    cp core/build-agents-md.mjs "$b7/core/" && cp hooks/session-start.mjs hooks/hooks.json "$b7/hooks/" &&
+    cp core/build-agents-md.mjs "$b7/core/" && cp hooks/session-start.mjs hooks/flags.mjs hooks/hooks.json "$b7/hooks/" &&
     printf '# Agreement\n\nBe equals.\n' > "$b7/core/agreement.md" &&
     printf '%s\n' --- "name: ponytail" "description: d" --- "" "# Ponytail" "" "Be lazy." > "$b7/skills/ponytail/SKILL.md" &&
     { echo "# ADHD"; awk -v n="$1" 'BEGIN { while (n > 0) { print "Be brief, be brief, be brief, be brief, be brief."; n -= 50 } }'; } \
@@ -314,7 +315,7 @@ node -e '
 # A missing source silences only its own part; the hook still exits 0
 hk="$tmp/hookcopy"
 mkdir -p "$hk/core" "$hk/hooks" "$hk/skills/ponytail" && cp core/build-agents-md.mjs core/agreement.md "$hk/core/" &&
-  cp hooks/session-start.mjs "$hk/hooks/" && cp skills/ponytail/SKILL.md "$hk/skills/ponytail/" || exit 1
+  cp hooks/session-start.mjs hooks/flags.mjs "$hk/hooks/" && cp skills/ponytail/SKILL.md "$hk/skills/ponytail/" || exit 1
 out=$(node "$hk/hooks/session-start.mjs" SessionStart adhd < /dev/null 2>&1); c=$?
 [ "$c" -eq 0 ] && [ -z "$out" ] || fail "SessionStart adhd with core/i-have-adhd.md missing: exit $c, output '$out'"
 node "$hk/hooks/session-start.mjs" SessionStart ponytail < /dev/null | cmp -s "$tmp/want.ponytail" - ||
@@ -322,6 +323,131 @@ node "$hk/hooks/session-start.mjs" SessionStart ponytail < /dev/null | cmp -s "$
 rm "$hk/core/build-agents-md.mjs"
 out=$(node "$hk/hooks/session-start.mjs" SessionStart ponytail < /dev/null 2>&1); c=$?
 [ "$c" -eq 0 ] && [ -z "$out" ] || fail "hook with core/build-agents-md.mjs missing: exit $c, output '$out'"
+
+# Off switches (ticket 08). Every call uses a throwaway config folder, never the developer's ~/.claude.
+cfg="$tmp/cfg" sess="$tmp/cfg/diy-harness/sessions"
+mkdir -p "$cfg"
+hook() { CLAUDE_CONFIG_DIR="$cfg" node hooks/session-start.mjs "$@"; }
+track() { printf '%s' "$1" | CLAUDE_CONFIG_DIR="$cfg" node hooks/prompt-tracker.mjs; }
+ss() { printf '{"session_id":"%s","source":"%s"}' "$1" "${3:-startup}" | hook SessionStart "$2"; }
+sa_ctx() {  # <session> <part>: the additionalContext a subagent of that session gets
+  printf '{"session_id":"%s","agent_id":"a1","agent_type":"Explore"}' "$1" | hook SubagentStart "$2" |
+    node -e 'process.stdout.write(JSON.parse(require("fs").readFileSync(0, "utf8")).hookSpecificOutput.additionalContext)'
+}
+n_ponytail='diy-harness always-on: ponytail rules are off for this session ("stop ponytail" or "normal mode").'
+n_adhd='diy-harness always-on: i-have-adhd rules are off for this session ("stop adhd mode" or "normal mode").'
+# 1. "stop ponytail" in session A: off for A's session starts and subagents, whatever the source; session B keeps it
+out=$(track '{"session_id":"sessA","prompt":"stop ponytail"}'); c=$?
+[ "$c" -eq 0 ] && case $out in *"ponytail rules are now off for this session"*) true ;; *) false ;; esac ||
+  fail "tracker: exit $c, no context line for 'stop ponytail'. Output: $out"
+[ "$(cat "$sess/sessA" 2>/dev/null)" = ponytail ] || fail "tracker: the flag for sessA is not exactly 'ponytail'"
+for src in startup resume compact; do
+  [ "$(ss sessA ponytail "$src")" = "$n_ponytail" ] || fail "SessionStart ($src) ponytail for sessA is not the off notice"
+done
+# /clear starts a new session ID (ADR 0003 H6), so the rules come back
+ss sessA-cleared ponytail clear | cmp -s "$tmp/want.ponytail" - || fail "after /clear (a new session ID) ponytail did not come back"
+[ "$(sa_ctx sessA ponytail)" = "$n_ponytail" ] || fail "a subagent of sessA still gets ponytail"
+ss sessA adhd | cmp -s "$tmp/want.adhd" - || fail "stop ponytail also changed i-have-adhd"
+ss sessB ponytail | cmp -s "$tmp/want.ponytail" - || fail "stop ponytail in sessA changed sessB"
+# 2. "stop adhd mode" and "normal mode" (whole prompt, any case, trailing punctuation); flags merge
+track '{"session_id":"sessC","prompt":"stop adhd mode"}' > /dev/null
+[ "$(ss sessC adhd)" = "$n_adhd" ] || fail "stop adhd mode did not switch i-have-adhd off"
+ss sessC ponytail | cmp -s "$tmp/want.ponytail" - || fail "stop adhd mode also switched ponytail off"
+track '{"session_id":"sessD","prompt":"  Normal Mode!  "}' > /dev/null
+[ "$(ss sessD ponytail)" = "$n_ponytail" ] && [ "$(ss sessD adhd)" = "$n_adhd" ] || fail "normal mode did not switch both off"
+track '{"session_id":"sessA","prompt":"stop adhd mode"}' > /dev/null
+[ "$(ss sessA ponytail)" = "$n_ponytail" ] && [ "$(ss sessA adhd)" = "$n_adhd" ] || fail "a second switch replaced the first"
+# 3. A phrase inside a longer prompt switches nothing off
+out=$(track '{"session_id":"sessE","prompt":"please add a normal mode toggle"}')
+[ -z "$out" ] && [ ! -e "$sess/sessE" ] || fail "'please add a normal mode toggle' switched something off"
+# 4. DIY_HARNESS_OFF: ponytail and adhd only, named in the notice; "all" changes nothing
+hook_env() { CLAUDE_CONFIG_DIR="$cfg" env "$@"; }  # hook_env VAR=value... node hooks/session-start.mjs ...
+[ "$(printf '{}' | hook_env DIY_HARNESS_OFF=ponytail node hooks/session-start.mjs SessionStart ponytail)" = 'diy-harness always-on: ponytail rules are off (DIY_HARNESS_OFF).' ] ||
+  fail "DIY_HARNESS_OFF=ponytail did not replace ponytail with its notice"
+[ "$(printf '{}' | hook_env DIY_HARNESS_OFF=' Ponytail , adhd' node hooks/session-start.mjs SessionStart adhd)" = 'diy-harness always-on: i-have-adhd rules are off (DIY_HARNESS_OFF).' ] ||
+  fail "DIY_HARNESS_OFF with spaces and case did not switch i-have-adhd off"
+for p in agreement ponytail adhd; do
+  printf '{}' | hook_env DIY_HARNESS_OFF=all node hooks/session-start.mjs SessionStart "$p" | cmp -s "$tmp/want.$p" - ||
+    fail "DIY_HARNESS_OFF=all changed the $p part"
+done
+# The agreement has no off switch: not by DIY_HARNESS_OFF, not by a flag that names it
+printf '{}' | hook_env DIY_HARNESS_OFF=agreement,ponytail,adhd node hooks/session-start.mjs SessionStart agreement |
+  cmp -s "$tmp/want.agreement" - || fail "DIY_HARNESS_OFF switched the agreement off"
+printf 'agreement\n' > "$sess/sessAg"
+ss sessAg agreement | cmp -s "$tmp/want.agreement" - || fail "a flag naming the agreement switched it off"
+# 5. Unsafe input writes nothing
+before=$(find "$tmp" | sort)
+track '{"session_id":"../x","prompt":"stop ponytail"}' > /dev/null
+track 'not json' > "$tmp/track.out"; c=$?
+[ "$c" -eq 0 ] && [ ! -s "$tmp/track.out" ] || fail "tracker on malformed stdin: exit $c or output"
+rm -f "$tmp/track.out"
+[ "$(find "$tmp" | sort)" = "$before" ] || fail "an unsafe session ID or malformed stdin wrote a file"
+mkdir -p "$tmp/rel" "$tmp/home" && here=$PWD && (cd "$tmp/rel" &&
+  printf '{"session_id":"sessR","prompt":"stop ponytail"}' | HOME="$tmp/home" CLAUDE_CONFIG_DIR=relcfg node "$here/hooks/prompt-tracker.mjs" > /dev/null &&
+  printf '{"session_id":"sessR","prompt":"stop ponytail"}' | env -u CLAUDE_CONFIG_DIR HOME=relhome node "$here/hooks/prompt-tracker.mjs" > /dev/null)
+[ -z "$(ls -A "$tmp/rel")" ] && [ -z "$(ls -A "$tmp/home")" ] || fail "a relative CLAUDE_CONFIG_DIR or HOME was used, or a fallback home"
+# Flags are never written or read through a symlink
+echo keep > "$tmp/victim" && ln -s "$tmp/victim" "$sess/sessG"
+track '{"session_id":"sessG","prompt":"stop ponytail"}' > /dev/null
+[ "$(cat "$tmp/victim")" = keep ] || fail "the tracker wrote through a symlinked flag"
+echo ponytail > "$tmp/planted" && ln -s "$tmp/planted" "$sess/sessH"
+ss sessH ponytail | cmp -s "$tmp/want.ponytail" - || fail "a symlinked flag was obeyed"
+echo ponytail > "$sess/sessU" && chmod 000 "$sess/sessU"
+if [ -r "$sess/sessU" ]; then
+  echo "SKIP: running as root, an unreadable flag cannot be made"; skips=$((skips + 1))
+else
+  ss sessU ponytail | cmp -s "$tmp/want.ponytail" - || fail "an unreadable flag did not fail open"
+  ss sessU agreement | cmp -s "$tmp/want.agreement" - || fail "an unreadable flag dropped the agreement"
+fi
+chmod 600 "$sess/sessU"
+mkdir -p "$tmp/cfg3/diy-harness" "$tmp/elsewhere" && echo ponytail > "$tmp/elsewhere/sessS" && ln -s "$tmp/elsewhere" "$tmp/cfg3/diy-harness/sessions"
+printf '{"session_id":"sessS"}' | CLAUDE_CONFIG_DIR="$tmp/cfg3" node hooks/session-start.mjs SessionStart ponytail |
+  cmp -s "$tmp/want.ponytail" - || fail "a flag read through a symlinked sessions folder was obeyed"
+# A flag that cannot be written (here its name is taken by a folder) leaves no temp file behind
+mkdir "$sess/sessDir"
+track '{"session_id":"sessDir","prompt":"stop ponytail"}' > /dev/null
+[ -z "$(find "$sess" -name '*.tmp')" ] || fail "a failed flag write left a temp file"
+# 6. A real session start prunes flags older than 7 days: only regular files named like a flag
+echo ponytail > "$sess/oldflag" && echo note > "$sess/notes.txt" && echo keep > "$tmp/target" && ln -s "$tmp/target" "$sess/linkflag"
+node -e 'const fs = require("fs"), t = (Date.now() - 8 * 864e5) / 1000; for (const p of process.argv.slice(1)) fs.utimesSync(p, t, t)' \
+  "$sess/oldflag" "$sess/notes.txt" "$tmp/target"
+echo ponytail > "$sess/sessF"
+node -e 'const fs = require("fs"), t = (Date.now() - 8 * 864e5) / 1000; fs.utimesSync(process.argv[1], t, t)' "$sess/sessF"
+ss sessF agreement > /dev/null
+[ ! -e "$sess/oldflag" ] || fail "a flag older than 7 days was not pruned"
+[ -f "$sess/sessF" ] && [ -z "$(find "$sess/sessF" -mtime +1)" ] || fail "the starting session's own old flag was pruned or not refreshed"
+[ -f "$sess/notes.txt" ] && [ -L "$sess/linkflag" ] && [ "$(cat "$tmp/target")" = keep ] && [ -f "$sess/sessA" ] ||
+  fail "pruning removed a non-flag file, a symlink or a fresh flag, or touched a symlink's target"
+# 7. The README documents the switches and the upstream-plugin duplicate (D6)
+for w in '"stop ponytail"' '"stop adhd mode"' '"normal mode"' DIY_HARNESS_OFF uninstall; do
+  grep -qF -- "$w" README.md || fail "README.md does not mention $w"
+done
+# hooks.json runs the tracker on every prompt, with a short timeout
+node -e '
+  const u = JSON.parse(require("fs").readFileSync("hooks/hooks.json", "utf8")).hooks.UserPromptSubmit || [];
+  const r = u.flatMap((g) => g.hooks);
+  process.exit(r.length === 1 && /hooks\/prompt-tracker\.mjs"$/.test(r[0].command) && Number.isInteger(r[0].timeout) && r[0].timeout <= 10 ? 0 : 1)' ||
+  fail "hooks/hooks.json does not run prompt-tracker.mjs on UserPromptSubmit with a timeout of 10 seconds or less"
+# The budget check measures the real parts even when the developer has switched a rule set off
+budget_fixture 11000
+out=$(DIY_HARNESS_OFF=ponytail,adhd sh scripts/check.sh "$b7" 2>&1)
+case $out in *"check budget: hooks/session-start.mjs adhd"*) ;; *) fail "DIY_HARNESS_OFF hid an oversized part from the budget check. Output: $out" ;; esac
+# The tracker exits 0 with no output even when flags.mjs is missing
+mkdir -p "$tmp/trackcopy/hooks" && cp hooks/prompt-tracker.mjs "$tmp/trackcopy/hooks/" || exit 1
+out=$(printf '{"session_id":"sessT","prompt":"stop ponytail"}' | CLAUDE_CONFIG_DIR="$cfg" node "$tmp/trackcopy/hooks/prompt-tracker.mjs" 2>&1); c=$?
+[ "$c" -eq 0 ] && [ -z "$out" ] || fail "tracker with flags.mjs missing: exit $c, output '$out'"
+# 8. Stdin that never closes holds up neither hook, and the tracker writes no flag
+before=$(find "$cfg" | sort)
+for h in "prompt-tracker.mjs" "session-start.mjs SessionStart ponytail"; do
+  # shellcheck disable=SC2086
+  CLAUDE_CONFIG_DIR="$cfg" node -e '
+    const [, ...args] = process.argv.slice(1);
+    const p = require("child_process").spawn(process.execPath, args, { stdio: ["pipe", "pipe", "inherit"] });
+    const t = setTimeout(() => { p.kill(); process.exit(1); }, 2000);
+    p.stdout.resume(); p.on("close", (c) => { clearTimeout(t); process.exit(c === 0 ? 0 : 1); });' x hooks/$h ||
+    fail "hooks/$h did not finish within 2 seconds with stdin left open"
+done
+[ "$(find "$cfg" | sort)" = "$before" ] || fail "a hook with stdin left open wrote a file"
 for f in skills/diy-harness/references/playbooks/to-spec.md skills/diy-harness/references/playbooks/to-tickets.md \
   skills/diy-harness/references/playbooks/implement.md skills/diy-harness/references/playbooks/implement-spec.md \
   skills/diy-harness/references/playbooks/retro.md; do

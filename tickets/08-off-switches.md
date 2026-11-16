@@ -1,6 +1,6 @@
 # Ticket 08: off switches
 
-Status: open
+Status: closed
 Blocked by: 07
 GOAL lines: M2, DN5, C1, C7, C9 · Decisions: D5 · Spec: docs/spec/05 section 2
 
