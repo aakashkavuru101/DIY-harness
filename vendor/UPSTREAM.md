@@ -49,3 +49,37 @@ listed in `vendor/PATCHES.md`.
 | `skills/writing-for-agents/agents/openai.yaml` | `skills/productivity/writing-for-agents/agents/openai.yaml` |
 | `skills/writing-for-agents/SKILL-MECHANICS.md` | `skills/productivity/writing-for-agents/SKILL-MECHANICS.md` |
 | `skills/writing-for-agents/SKILL.md` | `skills/productivity/writing-for-agents/SKILL.md` |
+
+## DietrichGebert/ponytail
+
+| Field | Value |
+| --- | --- |
+| URL | https://github.com/DietrichGebert/ponytail |
+| Pinned commit | `96608e078b2d5ea607c5c3b8b5a54d1c1fba6846` |
+| Commit date | 2026-10-29 |
+| Licence | MIT, `vendor/LICENSES/ponytail` |
+
+Not taken: the `ponytail-gain`, `ponytail-help` and `ponytail-review` skills, everything under
+`hooks/` (band, statusline, webhooks), the board, and `assets/band/` (D7, GOAL.md N2).
+
+| File | Upstream path |
+| --- | --- |
+| `skills/ponytail/SKILL.md` | `skills/ponytail/SKILL.md` |
+| `skills/ponytail-audit/SKILL.md` | `skills/ponytail-audit/SKILL.md` |
+| `skills/ponytail-debt/SKILL.md` | `skills/ponytail-debt/SKILL.md` |
+
+## ayghri/i-have-adhd
+
+| Field | Value |
+| --- | --- |
+| URL | https://github.com/ayghri/i-have-adhd |
+| Pinned commit | `1ecea1993b7fce257ffbd686c070948b5e07eda6` |
+| Commit date | 2026-10-11 |
+| Licence | MIT, `vendor/LICENSES/i-have-adhd` |
+
+Taken as an always-on rule only, with no skill folder (document 05 section 1). Not taken:
+`skills/i-have-adhd/agents/` and the rest of the repository.
+
+| File | Upstream path |
+| --- | --- |
+| `core/i-have-adhd.md` | `skills/i-have-adhd/SKILL.md` (body only: frontmatter block removed; `vendor/PATCHES.md` does not exist yet, ticket 04 records this change there) |

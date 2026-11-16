@@ -37,6 +37,11 @@ expect "$fx/check1-no-description" nonzero "check 1" "skills/demo/SKILL.md" "des
 expect "$fx/check1-unclosed-frontmatter" nonzero "check 1" "skills/demo/SKILL.md" "frontmatter"
 expect "$fx/check8-unlisted-file" nonzero "check 8" "skills/demo/EXTRA.md"
 expect "$fx/check8-prose-only" nonzero "check 8" "skills/demo/agents/openai.yaml"
+expect "$fx/check8-unlisted-ponytail" nonzero "check 8" "skills/ponytail/SKILL.md"
+
+# No-telemetry check (spec 07 section 9, D7): no band, board, statusline or webhook file outside the exempt dirs
+expect "$fx/telemetry-pass" 0
+expect "$fx/telemetry-statusline" nonzero "check no-telemetry" "hooks/ponytail-statusline.sh"
 
 # The real repo
 expect . 0
@@ -54,6 +59,17 @@ if [ -d upstream ]; then
     d=$(diff -r "upstream/skills/skills/$gn" "skills/${gn#*/}" 2>&1) ||
       fail "skills/${gn#*/} differs from upstream/skills/skills/$gn: $d"
   done
+  # The three ponytail skills, unchanged from the pin
+  for n in ponytail ponytail-audit ponytail-debt; do
+    d=$(diff -r "upstream/ponytail/skills/$n" "skills/$n" 2>&1) ||
+      fail "skills/$n differs from upstream/ponytail/skills/$n: $d"
+  done
+  # core/i-have-adhd.md is the upstream SKILL.md minus its leading --- frontmatter block
+  src=upstream/i-have-adhd/skills/i-have-adhd/SKILL.md
+  end=$(awk 'NR == 1 && $0 != "---" { exit } NR > 1 && $0 == "---" { print NR; exit }' "$src")
+  if [ -z "$end" ]; then fail "$src has no frontmatter block"
+  else tail -n "+$((end + 1))" "$src" | cmp -s - core/i-have-adhd.md ||
+    fail "core/i-have-adhd.md is not $src minus its frontmatter"; fi
 else
   echo "SKIP: upstream/ absent, licence and skill identity not checked"; skips=1
 fi

@@ -40,6 +40,16 @@ $unlisted
 EOF
 fi
 
+# No-telemetry check (spec 07 section 9, D7): ponytail's band, board, statusline and webhooks stay dropped.
+# A path matches when one of those words is a whole token (split on / - _ .), so keyboard.md does not.
+dropped=$(find . \( -path ./.git -o -path ./upstream -o -path ./docs -o -path ./plans -o -path ./tests/fixtures \) -prune \
+  -o ! -type d -print | sed 's|^\./||' | grep -iE '(^|[/._-])(band|board|statusline|webhooks?)([/._-]|$)' | sort)
+while IFS= read -r f; do
+  [ -n "$f" ] && report no-telemetry "$f" "dropped telemetry file (band, board, statusline, webhook)"
+done <<EOF
+$dropped
+EOF
+
 # Check 9: three licence texts in vendor/LICENSES/, NOTICE names all three authors.
 for name in mattpocock-skills ponytail i-have-adhd; do
   f=vendor/LICENSES/$name
