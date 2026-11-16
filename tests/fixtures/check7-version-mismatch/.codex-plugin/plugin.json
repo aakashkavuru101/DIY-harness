@@ -1,0 +1,8 @@
+{
+  "name": "demo-plugin",
+  "version": "2.0.0",
+  "description": "Fixture plugin.",
+  "license": "MIT",
+  "skills": "./skills/",
+  "interface": { "displayName": "Demo", "shortDescription": "Fixture plugin." }
+}

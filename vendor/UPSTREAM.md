@@ -3,6 +3,8 @@
 Every file DIY-harness takes from an upstream repository, at the pinned commit (GOAL.md C8).
 Nothing is fetched: files are copied from local clones in `upstream/`. Local changes are
 listed in `vendor/PATCHES.md`.
+Files DIY-harness wrote itself are listed in the last section, so every file under `skills/` is
+accounted for.
 
 ## mattpocock/skills
 
@@ -94,3 +96,13 @@ Taken as an always-on rule only, with no skill folder (document 05 section 1). N
 | File | Upstream path |
 | --- | --- |
 | `core/i-have-adhd.md` | `skills/i-have-adhd/SKILL.md` (body only, frontmatter removed) |
+
+## DIY-harness's own files
+
+Written for DIY-harness, not taken from upstream. Check 8 counts them as listed and does not diff
+them against any upstream.
+
+| File | Upstream path |
+| --- | --- |
+| `skills/diy-harness/SKILL.md` | none |
+| `skills/diy-harness/agents/openai.yaml` | none |
