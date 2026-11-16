@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 392" width="960" height="392" font-family="DejaVu Sans, Verdana, Arial, sans-serif" role="img" aria-label="Harness levels L0 to L4 as a staircase">
+<title>Harness levels L0 to L4 as a staircase</title>
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#1B2A41"/></marker><marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2F6FDB"/></marker></defs>
+<rect width="960" height="392" fill="#FFFFFF"/>
+<text x="28.0" y="26.0" font-size="14" fill="#1B2A41" text-anchor="start" font-weight="bold">Levels: a ceiling on what may be proposed, never a package</text>
+<rect x="28" y="206" width="172" height="150" rx="8" fill="#F4F7FD" stroke="#1B2A41" stroke-width="1.4"/>
+<text x="114.0" y="224.0" font-size="9" fill="#2F6FDB" text-anchor="middle" font-weight="bold">L0</text>
+<text x="114.0" y="243.0" font-size="13" fill="#1B2A41" text-anchor="middle" font-weight="bold">Seed</text>
+<text x="114.0" y="260.5" font-size="9.5" fill="#5B6576" text-anchor="middle">A script or one-session task</text>
+<text x="114.0" y="290.0" font-size="8.8" fill="#1B2A41" text-anchor="middle">Goal lock · pointers · always-on</text>
+<text x="114.0" y="302.0" font-size="8.8" fill="#1B2A41" text-anchor="middle">rules · one check</text>
+<rect x="211" y="170" width="172" height="186" rx="8" fill="#EEF3FC" stroke="#1B2A41" stroke-width="1.4"/>
+<text x="297.0" y="188.0" font-size="9" fill="#2F6FDB" text-anchor="middle" font-weight="bold">L1</text>
+<text x="297.0" y="207.0" font-size="13" fill="#1B2A41" text-anchor="middle" font-weight="bold">Guarded</text>
+<text x="297.0" y="224.5" font-size="9.5" fill="#5B6576" text-anchor="middle">Solo repo, several sessions</text>
+<text x="297.0" y="254.0" font-size="8.8" fill="#1B2A41" text-anchor="middle">+ agreement · state · glossary ·</text>
+<text x="297.0" y="266.0" font-size="8.8" fill="#1B2A41" text-anchor="middle">deny rules · pre-commit · TDD ·</text>
+<text x="297.0" y="278.0" font-size="8.8" fill="#1B2A41" text-anchor="middle">review</text>
+<rect x="394" y="134" width="172" height="222" rx="8" fill="#DCE7FA" stroke="#1B2A41" stroke-width="1.4"/>
+<text x="480.0" y="152.0" font-size="9" fill="#2F6FDB" text-anchor="middle" font-weight="bold">L2</text>
+<text x="480.0" y="171.0" font-size="13" fill="#1B2A41" text-anchor="middle" font-weight="bold">Structured</text>
+<text x="480.0" y="188.5" font-size="9.5" fill="#5B6576" text-anchor="middle">Multi-week work, small team</text>
+<text x="480.0" y="218.0" font-size="8.8" fill="#1B2A41" text-anchor="middle">+ spec and tickets · CI · sandbox ·</text>
+<text x="480.0" y="230.0" font-size="8.8" fill="#1B2A41" text-anchor="middle">standards · context policy · retro</text>
+<rect x="577" y="98" width="172" height="258" rx="8" fill="#C5D6F5" stroke="#1B2A41" stroke-width="1.4"/>
+<text x="663.0" y="116.0" font-size="9" fill="#2F6FDB" text-anchor="middle" font-weight="bold">L3</text>
+<text x="663.0" y="135.0" font-size="13" fill="#1B2A41" text-anchor="middle" font-weight="bold">Instrumented</text>
+<text x="663.0" y="152.5" font-size="9.5" fill="#5B6576" text-anchor="middle">Client or cost-sensitive work</text>
+<text x="663.0" y="182.0" font-size="8.8" fill="#1B2A41" text-anchor="middle">+ drift hook · telemetry · eval</text>
+<text x="663.0" y="194.0" font-size="8.8" fill="#1B2A41" text-anchor="middle">suites · routing · MCP pinning</text>
+<rect x="760" y="62" width="172" height="294" rx="8" fill="#AFC5F0" stroke="#1B2A41" stroke-width="1.4"/>
+<text x="846.0" y="80.0" font-size="9" fill="#2F6FDB" text-anchor="middle" font-weight="bold">L4</text>
+<text x="846.0" y="99.0" font-size="13" fill="#1B2A41" text-anchor="middle" font-weight="bold">Orchestrated</text>
+<text x="846.0" y="116.5" font-size="9.5" fill="#5B6576" text-anchor="middle">Production, several agents</text>
+<text x="846.0" y="146.0" font-size="8.8" fill="#1B2A41" text-anchor="middle">+ parallel agents · eval release</text>
+<text x="846.0" y="158.0" font-size="8.8" fill="#1B2A41" text-anchor="middle">gate · permissions · runbook</text>
+<path d="M88 172 C 278 56, 588 -6, 748 38" fill="none" stroke="#2F6FDB" stroke-width="1.5" marker-end="url(#b)" stroke-dasharray="5 4"/>
+<text x="28.0" y="60.0" font-size="9.5" fill="#2F6FDB" text-anchor="start">level up: a retro finds a failure whose</text>
+<text x="28.0" y="73.0" font-size="9.5" fill="#2F6FDB" text-anchor="start">answering part sits above the ceiling</text>
+<text x="28.0" y="380.0" font-size="9.5" fill="#5B6576" text-anchor="start">Level down when parts turn out to be no-ops. Inside the ceiling, a part is still built only when a real failure or a goal line earns it.</text>
+</svg>

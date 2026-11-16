@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 336" width="960" height="336" font-family="DejaVu Sans, Verdana, Arial, sans-serif" role="img" aria-label="The eval loop from a real failure to a release gate">
+<title>The eval loop from a real failure to a release gate</title>
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#1B2A41"/></marker><marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2F6FDB"/></marker></defs>
+<rect width="960" height="336" fill="#FFFFFF"/>
+<text x="28.0" y="26.0" font-size="14" fill="#1B2A41" text-anchor="start" font-weight="bold">Eval loop: from a real failure to a gate</text>
+<rect x="28" y="48" width="160" height="78" rx="8" fill="#EEF3FC" stroke="#1B2A41" stroke-width="1.4"/>
+<text x="108.0" y="70.0" font-size="12" fill="#1B2A41" text-anchor="middle" font-weight="bold">Real failure</text>
+<text x="108.0" y="87.5" font-size="9.5" fill="#5B6576" text-anchor="middle">Something went wrong in a</text>
+<text x="108.0" y="100.0" font-size="9.5" fill="#5B6576" text-anchor="middle">real session</text>
+<line x1="188" y1="87" x2="213" y2="87" stroke="#1B2A41" stroke-width="1.5" marker-end="url(#a)"/>
+<rect x="214" y="48" width="160" height="78" rx="8" fill="#EEF3FC" stroke="#1B2A41" stroke-width="1.4"/>
+<text x="294.0" y="70.0" font-size="12" fill="#1B2A41" text-anchor="middle" font-weight="bold">Failure log</text>
+<text x="294.0" y="87.5" font-size="9.5" fill="#5B6576" text-anchor="middle">What ran, what went wrong,</text>
+<text x="294.0" y="100.0" font-size="9.5" fill="#5B6576" text-anchor="middle">root cause</text>
+<line x1="374" y1="87" x2="399" y2="87" stroke="#1B2A41" stroke-width="1.5" marker-end="url(#a)"/>
+<rect x="400" y="48" width="160" height="78" rx="8" fill="#EEF3FC" stroke="#1B2A41" stroke-width="1.4"/>
+<text x="480.0" y="70.0" font-size="12" fill="#1B2A41" text-anchor="middle" font-weight="bold">Eval case</text>
+<text x="480.0" y="87.5" font-size="9.5" fill="#5B6576" text-anchor="middle">Clean start, prompt, known</text>
+<text x="480.0" y="100.0" font-size="9.5" fill="#5B6576" text-anchor="middle">good outcome</text>
+<line x1="560" y1="87" x2="585" y2="87" stroke="#1B2A41" stroke-width="1.5" marker-end="url(#a)"/>
+<rect x="586" y="48" width="160" height="78" rx="8" fill="#EEF3FC" stroke="#1B2A41" stroke-width="1.4"/>
+<text x="666.0" y="70.0" font-size="12" fill="#1B2A41" text-anchor="middle" font-weight="bold">Run k trials</text>
+<text x="666.0" y="87.5" font-size="9.5" fill="#5B6576" text-anchor="middle">3 by default, 5 on critical</text>
+<text x="666.0" y="100.0" font-size="9.5" fill="#5B6576" text-anchor="middle">cases</text>
+<line x1="746" y1="87" x2="771" y2="87" stroke="#1B2A41" stroke-width="1.5" marker-end="url(#a)"/>
+<rect x="772" y="48" width="160" height="78" rx="8" fill="#EEF3FC" stroke="#1B2A41" stroke-width="1.4"/>
+<text x="852.0" y="70.0" font-size="12" fill="#1B2A41" text-anchor="middle" font-weight="bold">Grade</text>
+<text x="852.0" y="87.5" font-size="9.5" fill="#5B6576" text-anchor="middle">Code graders first, judge</text>
+<text x="852.0" y="100.0" font-size="9.5" fill="#5B6576" text-anchor="middle">model second</text>
+<line x1="852.0" y1="126" x2="852.0" y2="190" stroke="#1B2A41" stroke-width="1.5" marker-end="url(#a)"/>
+<rect x="772" y="192" width="160" height="96" rx="8" fill="#DCE7FA" stroke="#1B2A41" stroke-width="1.4"/>
+<text x="852.0" y="214.0" font-size="12" fill="#1B2A41" text-anchor="middle" font-weight="bold">Capability suite</text>
+<text x="852.0" y="231.5" font-size="9.5" fill="#5B6576" text-anchor="middle">Starts low: a hill to climb with</text>
+<text x="852.0" y="244.0" font-size="9.5" fill="#5B6576" text-anchor="middle">harness changes</text>
+<line x1="772" y1="240" x2="747" y2="240" stroke="#1B2A41" stroke-width="1.5" marker-end="url(#a)"/>
+<rect x="586" y="192" width="160" height="96" rx="8" fill="#DCE7FA" stroke="#1B2A41" stroke-width="1.4"/>
+<text x="666.0" y="214.0" font-size="12" fill="#1B2A41" text-anchor="middle" font-weight="bold">Regression suite</text>
+<text x="666.0" y="231.5" font-size="9.5" fill="#5B6576" text-anchor="middle">Must stay near 100%. Runs</text>
+<text x="666.0" y="244.0" font-size="9.5" fill="#5B6576" text-anchor="middle">on every harness change and</text>
+<text x="666.0" y="256.5" font-size="9.5" fill="#5B6576" text-anchor="middle">upgrade</text>
+<line x1="586" y1="240" x2="561" y2="240" stroke="#1B2A41" stroke-width="1.5" marker-end="url(#a)"/>
+<rect x="400" y="192" width="160" height="96" rx="8" fill="#E6F4EA" stroke="#2E7D4F" stroke-width="1.4"/>
+<text x="480.0" y="214.0" font-size="12" fill="#1B2A41" text-anchor="middle" font-weight="bold">Gate</text>
+<text x="480.0" y="231.5" font-size="9.5" fill="#5B6576" text-anchor="middle">Batch pass rate and trend.</text>
+<text x="480.0" y="244.0" font-size="9.5" fill="#5B6576" text-anchor="middle">Critical cases must pass</text>
+<text x="480.0" y="256.5" font-size="9.5" fill="#5B6576" text-anchor="middle">every trial</text>
+<line x1="400" y1="240" x2="375" y2="240" stroke="#1B2A41" stroke-width="1.5" marker-end="url(#a)"/>
+<rect x="214" y="192" width="160" height="96" rx="8" fill="#FFF4E0" stroke="#B7791F" stroke-width="1.4"/>
+<text x="294.0" y="214.0" font-size="12" fill="#1B2A41" text-anchor="middle" font-weight="bold">Keep or revert</text>
+<text x="294.0" y="231.5" font-size="9.5" fill="#5B6576" text-anchor="middle">One harness change at a</text>
+<text x="294.0" y="244.0" font-size="9.5" fill="#5B6576" text-anchor="middle">time, so the suite can say</text>
+<text x="294.0" y="256.5" font-size="9.5" fill="#5B6576" text-anchor="middle">what helped</text>
+<text x="759.0" y="304.0" font-size="8.5" fill="#2F6FDB" text-anchor="middle">a case that passes reliably graduates</text>
+<path d="M294.0 190 L294.0 160 L108.0 160 L108.0 129" fill="none" stroke="#2F6FDB" stroke-width="1.5" marker-end="url(#b)" stroke-dasharray="5 4"/>
+<text x="210.0" y="154.0" font-size="9" fill="#2F6FDB" text-anchor="middle">next real failure</text>
+<text x="28.0" y="322.0" font-size="9.3" fill="#5B6576" text-anchor="start">Write the eval before the harness change. Read the transcripts behind any surprising score. Evals measure behaviour; they are not a security control.</text>
+</svg>
