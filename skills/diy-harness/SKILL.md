@@ -4,4 +4,4 @@ description: Build a custom harness for this project together with the user, as 
 disable-model-invocation: true
 ---
 
-The stage flow (S0 to S6) arrives in milestone M2; until then this command does nothing.
+The stage flow starts arriving in milestone M2; until then this command does nothing.

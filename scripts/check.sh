@@ -120,7 +120,11 @@ if [ -f vendor/UPSTREAM.md ]; then
     /^\| `/ { print url "|" pin "|" $2 "|" $4 }' vendor/UPSTREAM.md)
   warned=
   while IFS='|' read -r url pin local up; do
-    [ -n "$local" ] && [ "$url" != OWN ] || continue
+    [ -n "$local" ] || continue
+    if [ "$url" = OWN ]; then
+      [ -f "$local" ] || report 8 "$local" "listed in vendor/UPSTREAM.md but missing"
+      continue
+    fi
     if [ -z "$url" ] || [ -z "$pin" ]; then
       echo "warning: check 8: $local: no URL or pinned commit above its row in vendor/UPSTREAM.md, diff not checked" >&2
       continue
@@ -186,13 +190,17 @@ done
 if [ -f .claude-plugin/plugin.json ]; then
   in_array=$(tr -d '\n' < .claude-plugin/plugin.json | sed -n 's/.*"skills"[[:space:]]*:[[:space:]]*\[\([^]]*\)\].*/\1/p' |
     grep -oE '"[^"]*"' | tr -d '"' | sed 's|^\./||; s|/$||')
-  for d in skills/*/; do
-    [ -d "$d" ] || continue
-    printf '%s\n' "$in_array" | grep -qxF "${d%/}" ||
-      report manifest-skills "${d%/}" "folder is not in the .claude-plugin/plugin.json skills array"
+  folders=$(for d in skills/*/; do [ -d "$d" ] && printf '%s\n' "${d%/}"; done)
+  for d in $folders; do
+    printf '%s\n' "$in_array" | grep -qxF "$d" ||
+      report manifest-skills "$d" "folder is not in the .claude-plugin/plugin.json skills array"
   done
   for e in $in_array; do
-    [ -d "$e" ] || report manifest-skills "$e" "is in the .claude-plugin/plugin.json skills array but is not a folder"
+    printf '%s\n' "$folders" | grep -qxF "$e" ||
+      report manifest-skills "$e" "is in the .claude-plugin/plugin.json skills array but is not a folder under skills/"
+  done
+  for e in $(printf '%s\n' "$in_array" | sort | uniq -d); do
+    report manifest-skills "$e" "is listed more than once in the .claude-plugin/plugin.json skills array"
   done
 fi
 
@@ -202,9 +210,10 @@ if [ -f .claude-plugin/plugin.json ] || [ -f .claude-plugin/marketplace.json ]; 
     # Validation is local; also keep the CLI from updating itself or sending anything (C7)
     if ! out=$(CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1 DISABLE_AUTOUPDATER=1 claude plugin validate . --strict 2>&1); then
       report 10 .claude-plugin "claude plugin validate . --strict failed:"
-      # The plugin-directory notes do not change the result, so only the manifest findings are shown
+      # The plugin-directory notes do not change the result, so only the manifest findings are shown;
+      # if none match (a CLI error, say), the whole output is
       printf '%s\n' "$out" | awk '/^Plugin directory checks/ { skip = 1 } /Validation failed/ { skip = 0 }
-        !skip && /✘|❯/' | sed 's/^ */    /'
+        !skip && /✘|❯/' | sed 's/^ */    /' | grep . || printf '%s\n' "$out" | sed 's/^/    /'
     fi
   else
     echo "note: check 10 skipped: the claude CLI is not on PATH"

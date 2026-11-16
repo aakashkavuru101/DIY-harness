@@ -64,7 +64,21 @@ expect "$fx/check5-implicit-off" nonzero "check 5" "skills/demo"
 expect "$fx/check7-version-mismatch" nonzero "check 7" ".codex-plugin/plugin.json" "2.0.0"
 expect "$fx/skills-array-missing" nonzero "check manifest-skills" "skills/demo"
 expect "$fx/skills-array-extra" nonzero "check manifest-skills" "skills/ghost"
+# Variants built at run time from manifests-pass and check5-mismatch
+v="$tmp/variant"
+mkvariant() { rm -rf "$v" && mkdir -p "$v" && cp -R "$fx/$1/." "$v/"; }
+mkvariant manifests-pass
+sed -i.bak 's|"./skills/demo", "./skills/starter"|"./skills/demo", "./skills/starter", "./vendor", "./skills/demo"|' "$v/.claude-plugin/plugin.json"
+expect "$v" nonzero "check manifest-skills: vendor:" "check manifest-skills: skills/demo: is listed more than once"
+mkvariant manifests-pass
+sed -i.bak '/"version"/d' "$v/.codex-plugin/plugin.json"
+expect "$v" nonzero "check 7" ".codex-plugin/plugin.json" "has no version"
+mkvariant check5-mismatch
+printf 'interface:\n  display_name: "Starter"\n' > "$v/skills/starter/agents/openai.yaml"
+expect "$v" nonzero "check 5" "skills/starter" "unset"
 if command -v claude >/dev/null 2>&1; then
+  # Depends on the CLI: claude 2.1.325 --strict rejects a plugin.json with no author. If a later CLI accepts it,
+  # this line goes red for that reason, not because check 10 broke.
   expect "$fx/check10-invalid" nonzero "check 10" ".claude-plugin"
 else
   echo "SKIP: claude CLI not on PATH, check 10 failure not exercised"; skips=$((skips + 1))
@@ -107,6 +121,7 @@ echo "own" > "$g8/skills/demo/OWN.md"
 expect "$g8" 0
 refute "OWN.md"
 rm "$g8/skills/demo/OWN.md"
+expect "$g8" nonzero "check 8" "skills/demo/OWN.md" "missing"
 upstream_md 0000000000000000000000000000000000000000 > "$g8/vendor/UPSTREAM.md"
 expect "$g8" nonzero "check 8" "skills/demo/SKILL.md" "pin"
 upstream_md "$pin" > "$g8/vendor/UPSTREAM.md" && rm -rf "$g8/upstream"
@@ -183,7 +198,7 @@ if [ -d upstream ]; then
   else tail -n "+$((end + 1))" "$src" | cmp -s - core/i-have-adhd.md ||
     fail "core/i-have-adhd.md is not $src minus its frontmatter"; fi
 else
-  echo "SKIP: upstream/ absent, licence and skill identity not checked"; skips=1
+  echo "SKIP: upstream/ absent, licence and skill identity not checked"; skips=$((skips + 1))
 fi
 
 [ "$fails" -eq 0 ] && echo "PASS ($skips skipped)" || { echo "$fails failed"; exit 1; }
