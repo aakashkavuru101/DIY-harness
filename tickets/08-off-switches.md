@@ -24,8 +24,9 @@ A user can switch ponytail or i-have-adhd off for one session, or for good, eith
   - Flags are written through a temp file and a rename, never through an existing symlink.
   - At session start, flags older than 7 days are deleted. Only regular files named like a flag are deleted, and
     symlinks are never followed.
-- `hooks/session-start.mjs` leaves out a rule set that is off for this session, for the main session and its
-  subagents, for as long as Claude Code keeps the same session ID.
+- `hooks/session-start.mjs` now reads stdin for the session ID, with the same fallback timer. On stdin that is
+  missing, garbled or never closes, it fails open and prints its part. It leaves out a rule set that is off for
+  this session, for the main session and its subagents, for as long as Claude Code keeps the same session ID.
 - Verify, and record in `docs/adr/0003` with the CLI version: whether resume, `/clear` and compaction keep the
   session ID, and whether `SubagentStart` input carries the parent's session ID. Upstream ponytail keeps the off
   state only across compaction, by design. Tell the user what survives in the context line.
@@ -55,5 +56,6 @@ A user can switch ponytail or i-have-adhd off for one session, or for good, eith
    survive, and the symlink's target is untouched. The flag file never contains the prompt.
 7. `README.md` names "stop ponytail", "stop adhd mode", "normal mode" and `DIY_HARNESS_OFF`, and says to
    uninstall the upstream plugins.
-8. With stdin that never closes, the tracker exits 0 within 2 seconds and writes no flag.
+8. With stdin that never closes, the tracker exits 0 within 2 seconds and writes no flag, and `session-start.mjs`
+   prints its part within 2 seconds.
 9. `scripts/check.sh` exits 0, including no-network on `hooks/`.

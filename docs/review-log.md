@@ -1,0 +1,10 @@
+# Review log
+
+Changes whose katsuo review still failed after two rounds (`.claude/CLAUDE.md` rule 6). The fixes for the last
+round's findings went in without a third review. Each change listed here is reviewed again before its milestone
+closes (the Milestone column), and the date and result go in the last two columns.
+
+| Date | Change | Milestone | Rounds | Last verdict | Findings after the last round: fixed / left open | Re-reviewed (date) | Result |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-11-16 | PR #8, M2 plan: `PLAN.md` M2 section, tickets 07 to 13, ADR 0001 and 0003 | M2 | 2 | FAIL: 5 major, 10 minor | All 15: tracker stdin timeout; session ID across resume, clear and compact to be verified; eval isolation by a throwaway config folder; Q1 revised; per-turn snapshots and repeat-until turns for E1; cost measured in ticket 10; README uninstall line; Q6 residual risk; green-before rule; E12 turns (Q5); `status` open decisions; Q5 added; Q2 named in tickets 10 to 13; the hook fails open; the secrets rule in S0 and the audit | | |
+| 2026-11-16 | Branch `docs/review-rule`: rule 6 names katsuo; this log; Aakash's answers Q1 to Q9 in `PLAN.md`; tickets 07 to 10 brought in line with Q7 to Q9; the Q8 deviation in ADR 0002 | M2 | 2 | CHANGES REQUESTED: 1 major, 6 minor | Fixed: tickets 07, 09 and 10 follow Q7 to Q9; the Q8 deviation is in ADR 0002, not 0003; a token check in ticket 09; "fails" defined; re-review fixes are not logged again; this column covers findings left open; PLAN wording and Q6 order. Left open: the old `.claude/agents/code-reviewer.md` and `security-reviewer.md`, now unreferenced, wait for Aakash | | |
