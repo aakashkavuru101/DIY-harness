@@ -138,13 +138,88 @@ expect "$gt" 0
 mkdir -p "$gt/hooks" && echo x > "$gt/hooks/claude-band.json"
 expect "$gt" nonzero "check no-telemetry" "hooks/claude-band.json"
 
+# Check 4: every relative link in a Markdown file resolves, relative to that file
+expect "$fx/check4-pass" 0
+expect "$fx/check4-broken-link" nonzero "check 4: README.md:3:" "docs/missing.md" "check 4: README.md:5:" "missing.svg" \
+  "check 4: README.md:7:" "gone.md" "check 4: docs/x.md:1:" "../nope.md" "check 4: docs/x.md:3:" "'NOTICE'" \
+  "check 4: README.md:11: link 'docs/X.md'" "check 4: README.md:11: link 'Docs/x.md'"
+refute "README.md:9:"
+# A link that leaves the repo does not resolve for a reader, even if the target exists on this machine
+mkdir -p "$tmp/c4/root" && cp -R "$fx/check9-pass/." "$tmp/c4/root/" && echo x > "$tmp/c4/outside.md" &&
+  echo '[out](../outside.md) and [up](../)' > "$tmp/c4/root/README.md" || exit 1
+expect "$tmp/c4/root" nonzero "check 4: README.md:1:" "'../outside.md'" "'../'" "outside the repo"
+# In a git work tree a non-ASCII name is still checked: git quotes such names unless told not to
+mkdir -p "$tmp/c4/git" && cp -R "$fx/check9-pass/." "$tmp/c4/git/" && git -C "$tmp/c4/git" init -q &&
+  echo '[gone](gone.md)' > "$tmp/c4/git/café.md" || exit 1
+expect "$tmp/c4/git" nonzero "check 4: café.md:1:" "'gone.md'"
+
+# Check 6: the committed AGENTS.md equals a fresh build. Built at run time around a copy of the real
+# core/build-agents-md.mjs, so the fixture cannot drift from the script it tests.
+c6="$tmp/c6"
+mkdir -p "$c6/core" "$c6/skills/ponytail" && cp -R "$fx/check9-pass/." "$c6/" && cp core/build-agents-md.mjs "$c6/core/" &&
+  printf '# Agreement\n\nBe equals.\n' > "$c6/core/agreement.md" &&
+  printf '%s\n' --- "name: ponytail" "description: d" --- "" "# Ponytail" "" "Be lazy." "" > "$c6/skills/ponytail/SKILL.md" &&
+  printf '\n# ADHD\n\nBe brief.\n' > "$c6/core/i-have-adhd.md" &&
+  printf "## DIY-harness's own files\n\n| File | Upstream path |\n| --- | --- |\n| \`skills/ponytail/SKILL.md\` | none |\n" \
+    > "$c6/vendor/UPSTREAM.md" || exit 1
+expect "$c6" nonzero "check 6: AGENTS.md" "missing"
+# Sources in order, blank edge lines dropped, one blank line between; run from another directory on purpose
+(cd "$tmp" && node "$c6/core/build-agents-md.mjs") > "$tmp/c6.out" || fail "build-agents-md.mjs to stdout failed"
+printf '# Agreement\n\nBe equals.\n\n# Ponytail\n\nBe lazy.\n\n# ADHD\n\nBe brief.\n' | cmp -s - "$tmp/c6.out" ||
+  fail "build-agents-md.mjs printed: $(cat "$tmp/c6.out")"
+node "$c6/core/build-agents-md.mjs" --write && cmp -s "$tmp/c6.out" "$c6/AGENTS.md" || fail "--write did not write the build"
+node "$c6/core/build-agents-md.mjs" --bogus 2>/dev/null; [ $? -eq 2 ] || fail "build-agents-md.mjs accepts an unknown flag"
+expect "$c6" 0
+if env PATH=/usr/bin:/bin sh -c 'command -v node' >/dev/null 2>&1; then
+  echo "SKIP: node is in /usr/bin or /bin, check 6 without node not exercised"; skips=$((skips + 1))
+else
+  out=$(PATH=/usr/bin:/bin sh scripts/check.sh "$c6" 2>&1) && fail "check 6 passes without node on PATH"
+  case $out in *"check 6: AGENTS.md: node is not on PATH"*) ;; *) fail "no check 6 node failure. Output: $out" ;; esac
+fi
+echo "extra line" >> "$c6/AGENTS.md"
+expect "$c6" nonzero "check 6: AGENTS.md" "differs"
+printf '# Ponytail\n' > "$c6/skills/ponytail/SKILL.md"
+expect "$c6" nonzero "check 6: core/build-agents-md.mjs" "no leading --- frontmatter block"
+rm "$c6/core/build-agents-md.mjs"
+expect "$c6" nonzero "check 6: core/build-agents-md.mjs" "missing"
+
+# No-network check (spec 07 section 9): no file under hooks/ references a network API; an absent hooks/ passes
+expect "$fx/hooks-clean" 0
+expect "$fx/hooks-network" nonzero "check no-network: hooks/x.mjs:1:"
+# Each network form fails on its own, in a variant of hooks-clean
+for hook in 'globalThis.fetch(u)' "import http from 'node:http';" 'require("https")' "import net from 'net';" \
+  'require("node:dgram")' "import tls from 'tls';" 'curl -s "$u"' 'wget -q -O- "$u"' 'new WebSocket(u)' \
+  'new XMLHttpRequest()' 'const u = "http://localhost:1";' 'exec 3<>/dev/tcp/localhost/1' 'require("node:dns")' \
+  "import dns from 'dns/promises';" "import { request } from 'undici';" 'const f = fetch;' 'globalThis["fetch"](u)'; do
+  mkvariant hooks-clean && printf '%s\n' "$hook" > "$v/hooks/y.mjs"
+  before=$fails
+  expect "$v" nonzero "check no-network: hooks/y.mjs:1:"
+  [ "$fails" -eq "$before" ] || echo "  (hook line: $hook)"
+done
+# A NUL byte makes grep treat a file as binary: GNU grep then prints no match line, BSD grep no line number
+mkvariant hooks-clean && printf 'x\0\nfetch(u)\n' > "$v/hooks/y.mjs"
+expect "$v" nonzero "check no-network: hooks/y.mjs:2:"
+# grep -r does not read through a symlink, so a linked hook or hooks folder fails instead of passing unread
+mkvariant hooks-clean && mkdir "$v/hooks/sub" && ln -s ../x.mjs "$v/hooks/sub/link.mjs"
+expect "$v" nonzero "check no-network: hooks/sub/link.mjs" "symlink"
+mkvariant check9-pass && ln -s "$PWD/$fx/hooks-network/hooks" "$v/hooks"
+expect "$v" nonzero "check no-network: hooks:" "symlink"
+
 # The real repo
 expect . 0
 grep -rq setup-matt-pocock-skills skills && fail "skills/ still mentions setup-matt-pocock-skills"
 for f in .claude-plugin/plugin.json .claude-plugin/marketplace.json .codex-plugin/plugin.json \
-  skills/diy-harness/SKILL.md skills/diy-harness/agents/openai.yaml; do
+  skills/diy-harness/SKILL.md skills/diy-harness/agents/openai.yaml \
+  AGENTS.md core/agreement.md core/build-agents-md.mjs README.md; do
   [ -f "$f" ] || fail "$f missing"
 done
+[ "$(readlink CLAUDE.md)" = AGENTS.md ] || fail "CLAUDE.md is not a symlink to AGENTS.md"
+# AGENTS.md is the agreement, then the ponytail body, then i-have-adhd: each without blank edge lines, a blank line
+# between. Rebuilt here in shell, independently of core/build-agents-md.mjs.
+trim() { awk 'NF && !s { s = NR } { a[NR] = $0 } NF { e = NR } END { for (i = s; s && i <= e; i++) print a[i] }'; }
+nofm() { awk 'NR == 1 && $0 == "---" { fm = 1; next } fm && $0 == "---" { fm = 0; next } !fm' "$1"; }
+{ trim < core/agreement.md; echo; nofm skills/ponytail/SKILL.md | trim; echo; trim < core/i-have-adhd.md; } |
+  cmp -s - AGENTS.md || fail "AGENTS.md is not agreement, then ponytail, then i-have-adhd"
 for f in skills/diy-harness/references/playbooks/to-spec.md skills/diy-harness/references/playbooks/to-tickets.md \
   skills/diy-harness/references/playbooks/implement.md skills/diy-harness/references/playbooks/implement-spec.md \
   skills/diy-harness/references/playbooks/retro.md; do
