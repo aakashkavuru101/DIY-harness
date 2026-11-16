@@ -1,6 +1,7 @@
 #!/bin/sh
 # Static checks (docs/spec/06 section 2). Usage: scripts/check.sh [repo-root]
 # Prints one line per failure: "check <n>: <file>: <why>". Exits non-zero if any failed.
+# Check 6 runs <repo-root>/core/build-agents-md.mjs with node, so point this only at a tree you trust.
 root=${1:-$(dirname "$0")/..}
 CDPATH= cd -- "$root" || { echo "check.sh: cannot enter $root"; exit 2; }
 failed=0
@@ -93,6 +94,19 @@ for y in skills/*/agents/openai.yaml; do
   fi
 done
 
+# Check 6 (doc 05 section 2): the committed AGENTS.md equals a fresh build by core/build-agents-md.mjs.
+# Runs when either file exists. Node is required; there is no shell fallback to drift from the script.
+if [ -f core/build-agents-md.mjs ] || [ -f AGENTS.md ]; then
+  if [ ! -f core/build-agents-md.mjs ]; then report 6 core/build-agents-md.mjs "missing, so AGENTS.md cannot be rebuilt"
+  elif ! command -v node >/dev/null 2>&1; then report 6 AGENTS.md "node is not on PATH, so AGENTS.md cannot be rebuilt"
+  elif [ ! -f AGENTS.md ]; then report 6 AGENTS.md "missing; run node core/build-agents-md.mjs --write"
+  # The trailing "." keeps the build's final newlines, which $(...) would strip
+  elif ! built=$(node core/build-agents-md.mjs && echo .); then report 6 core/build-agents-md.mjs "could not build AGENTS.md"
+  elif ! printf '%s' "${built%.}" | cmp -s - AGENTS.md; then
+    report 6 AGENTS.md "differs from a fresh build; run node core/build-agents-md.mjs --write"
+  fi
+fi
+
 # listed <file> <table.md>: <file> is the first cell of a table row in <table.md>
 listed() { [ -f "$2" ] && grep -q "^| \`$(printf '%s' "$1" | sed 's/[][\.*^$]/\\&/g')\` |" "$2"; }
 
@@ -148,7 +162,8 @@ fi
 # "In the repo" means what git sees (tracked, or untracked and not ignored), so ignored copies such as
 # nested worktrees do not count. Outside a git work tree every file counts.
 repo_files() {
-  if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then git ls-files -co --exclude-standard
+  # core.quotePath=false: git would otherwise print a non-ASCII name as "caf\303\251.md", in quotes
+  if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then git -c core.quotePath=false ls-files -co --exclude-standard
   else find . -path ./.git -prune -o ! -type d -print | sed 's|^\./||'; fi
 }
 dropped=$(repo_files | grep -vE '^(upstream|docs|plans|tests/fixtures)/' |
@@ -158,6 +173,65 @@ while IFS= read -r f; do
 done <<EOF
 $dropped
 EOF
+
+# Check 4: every relative link in every Markdown file git sees resolves, relative to that file and inside the repo.
+# upstream/ is skipped (read-only clones), and so is tests/fixtures/ (it holds deliberately broken files).
+# shortcut: a line scan, not a Markdown parser. Inline links, images and reference definitions outside code are
+# seen; HTML links, links split across lines and percent-encoded paths are not. Use a parser if one slips through.
+md_links() {  # <file>: "line<TAB>target" per link, outside fenced code and inline code
+  awk '/^[ \t]*(```|~~~)/ { fence = !fence; next }
+    fence { next }
+    { line = $0; gsub(/`[^`]*`/, "", line)
+      if (match(line, /^ ? ? ?\[[^]^][^]]*\]:[ \t]*/)) { print NR "\t" substr(line, RLENGTH + 1); next }
+      while (match(line, /\]\([^)]*\)/)) { print NR "\t" substr(line, RSTART + 2, RLENGTH - 3); line = substr(line, RSTART + RLENGTH) } }' "$1"
+}
+# exact <dir> <path>: each part of <path> under <dir> exists with exactly this case. A case-insensitive disk (macOS)
+# would otherwise find docs/Guide.md as docs/guide.md, a link that breaks on GitHub and Linux.
+exact() {
+  d=$1 rest=$2
+  while [ -n "$rest" ]; do
+    c=${rest%%/*}; case $rest in */*) rest=${rest#*/} ;; *) rest= ;; esac
+    case $c in ""|.|..) ;; *) ls -a -- "$d" | grep -qxF -- "$c" || return 1 ;; esac
+    d=$d/$c
+  done
+}
+TAB=$(printf '\t') top=$(pwd -P)
+mdfiles=$(repo_files | grep -E '\.md$' | grep -vE '^(upstream|tests/fixtures)/' | sort)
+while IFS= read -r f; do
+  [ -f "$f" ] || continue
+  dir=$(dirname -- "$f")
+  while IFS="$TAB" read -r n t; do
+    [ -n "$n" ] || continue
+    case $t in "<"*) t=${t#<}; t=${t%%>*} ;; *) t=${t%%[ $TAB]*} ;; esac  # <path>, or the path before a title
+    t=${t%%#*}; t=${t%%\?*}
+    case $t in ""|/*) continue ;; esac  # same-page anchor, or not relative
+    case ${t%%:*} in "$t"|*[!A-Za-z0-9+.-]*) ;; *) continue ;; esac  # a scheme before the first colon: a URL
+    p=$dir/$t
+    if [ ! -e "$p" ] || ! exact "$dir" "$t"; then report 4 "$f:$n" "link '$t' does not resolve"; continue; fi
+    if [ -d "$p" ]; then real=$(CDPATH= cd -- "$p" && pwd -P); else real=$(CDPATH= cd -- "$(dirname -- "$p")" && pwd -P); fi
+    case $real/ in "$top"/*) ;; *) report 4 "$f:$n" "link '$t' points outside the repo" ;; esac
+  done <<EOF
+$(md_links "$f")
+EOF
+done <<EOF
+$mdfiles
+EOF
+
+# No-network check (spec 07 section 9): no file under hooks/ references a network API. hooks/ may be absent.
+# shortcut: a pattern scan. It matches the words fetch, curl, wget, WebSocket and XMLHttpRequest, URLs, /dev/tcp,
+# and quoted network module names. A name built from strings passes. Hooks stay short enough to read (IN10).
+if [ -d hooks ]; then
+  NET='(^|[^A-Za-z0-9_$])fetch([^A-Za-z0-9_$]|$)|https?://|(^|[^A-Za-z0-9_-])(curl|wget)([^A-Za-z0-9_-]|$)'
+  NET="$NET|[\"'\`](node:)?(https?|http2|net|dgram|tls|dns|undici)(/promises)?[\"'\`]|WebSocket|XMLHttpRequest|/dev/(tcp|udp)/"
+  # -a: a NUL byte must not make grep treat a hook as binary and hide or garble the match
+  while IFS= read -r loc; do [ -n "$loc" ] && report no-network "$loc" "references a network API"; done <<EOF
+$(grep -rnaE "$NET" hooks | cut -d: -f1,2)
+EOF
+  # grep -r does not read through symlinks, so a linked hook would pass unread
+  while IFS= read -r l; do [ -n "$l" ] && report no-network "$l" "is a symlink; hooks must be plain files"; done <<EOF
+$(find hooks -type l)
+EOF
+fi
 
 # Check 9: three licence texts in vendor/LICENSES/, NOTICE names all three authors.
 for name in mattpocock-skills ponytail i-have-adhd; do

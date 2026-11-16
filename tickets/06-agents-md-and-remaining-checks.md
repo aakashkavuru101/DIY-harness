@@ -1,6 +1,6 @@
 # Ticket 06: generated AGENTS.md and the remaining checks
 
-Status: open
+Status: closed
 Blocked by: 03, 05
 GOAL lines: M1, DN1, C6, C7 · Spec: docs/spec/05 sections 1 and 2, 06 section 2 (checks 4, 6), 07 section 9
 
