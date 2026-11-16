@@ -34,29 +34,28 @@ expect "$fx/check9-notice-slug-only" nonzero "check 9" "NOTICE" "DietrichGebert"
 expect "$fx/skills-pass" 0
 expect "$fx/check1-name-mismatch" nonzero "check 1" "skills/demo/SKILL.md" "name"
 expect "$fx/check1-no-description" nonzero "check 1" "skills/demo/SKILL.md" "description"
+expect "$fx/check1-unclosed-frontmatter" nonzero "check 1" "skills/demo/SKILL.md" "frontmatter"
 expect "$fx/check8-unlisted-file" nonzero "check 8" "skills/demo/EXTRA.md"
+expect "$fx/check8-prose-only" nonzero "check 8" "skills/demo/agents/openai.yaml"
 
 # The real repo
 expect . 0
 
-# The eleven mattpocock engine skills are vendored unchanged from the pin
-if [ -d upstream ]; then
-  for gn in engineering/code-review engineering/codebase-design engineering/diagnosing-bugs \
-    engineering/domain-modeling engineering/pr engineering/prototype engineering/research \
-    engineering/tdd engineering/wizard productivity/grilling productivity/writing-for-agents; do
-    diff -r "upstream/skills/skills/$gn" "skills/${gn#*/}" >/dev/null 2>&1 ||
-      fail "skills/${gn#*/} differs from upstream/skills/skills/$gn"
-  done
-fi
-
-# Vendored licences are byte-identical to upstream (upstream/ is git-ignored, so absent in a fresh clone)
+# Vendored files are identical to upstream (upstream/ is git-ignored, so absent in a fresh clone)
 if [ -d upstream ]; then
   for pair in mattpocock-skills:skills ponytail:ponytail i-have-adhd:i-have-adhd; do
     cmp -s "vendor/LICENSES/${pair%%:*}" "upstream/${pair#*:}/LICENSE" ||
       fail "vendor/LICENSES/${pair%%:*} differs from upstream/${pair#*:}/LICENSE"
   done
+  # The eleven mattpocock engine skills, unchanged from the pin
+  for gn in engineering/code-review engineering/codebase-design engineering/diagnosing-bugs \
+    engineering/domain-modeling engineering/pr engineering/prototype engineering/research \
+    engineering/tdd engineering/wizard productivity/grilling productivity/writing-for-agents; do
+    d=$(diff -r "upstream/skills/skills/$gn" "skills/${gn#*/}" 2>&1) ||
+      fail "skills/${gn#*/} differs from upstream/skills/skills/$gn: $d"
+  done
 else
-  echo "SKIP: upstream/ absent, licence byte-identity not checked"; skips=1
+  echo "SKIP: upstream/ absent, licence and skill identity not checked"; skips=1
 fi
 
 [ "$fails" -eq 0 ] && echo "PASS ($skips skipped)" || { echo "$fails failed"; exit 1; }

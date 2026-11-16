@@ -19,16 +19,19 @@ frontmatter() {
 for f in skills/*/SKILL.md; do
   [ -f "$f" ] || continue
   dir=${f%/SKILL.md}; dir=${dir#skills/}
+  if ! awk 'NR == 1 && $0 != "---" { exit 1 } NR > 1 && $0 == "---" { ok = 1; exit } END { exit !ok }' "$f"; then
+    report 1 "$f" "frontmatter must open and close with a --- line"; continue
+  fi
   name=$(frontmatter "$f" name)
   [ "$name" = "$dir" ] || report 1 "$f" "frontmatter name '$name' does not match folder '$dir'"
   [ -n "$(frontmatter "$f" description)" ] || report 1 "$f" "frontmatter has no description"
 done
 
-# Check 8 (listing half): every file under skills/ is listed in vendor/UPSTREAM.md as `skills/...`.
+# Check 8 (listing half): every file under skills/ is a table row in vendor/UPSTREAM.md, first cell `skills/...`.
 if [ -d skills ]; then
   # .DS_Store is git-ignored macOS clutter, never vendored
   unlisted=$(find skills -type f ! -name .DS_Store | sort | while IFS= read -r f; do
-    [ -f vendor/UPSTREAM.md ] && grep -qF "\`$f\`" vendor/UPSTREAM.md || echo "$f"
+    [ -f vendor/UPSTREAM.md ] && grep -q "^| \`$(printf '%s' "$f" | sed 's/[][\.*^$]/\\&/g')\` |" vendor/UPSTREAM.md || echo "$f"
   done)
   while IFS= read -r f; do
     [ -n "$f" ] && report 8 "$f" "not listed in vendor/UPSTREAM.md"
