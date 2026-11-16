@@ -1,0 +1,11 @@
+{
+  "name": "diy-harness",
+  "version": "0.1.0",
+  "description": "Build a custom harness for your project together with you, one stage-gated step at a time, from L0 to L4.",
+  "license": "MIT",
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "DIY Harness",
+    "shortDescription": "Build your project's harness with you, one step at a time"
+  }
+}

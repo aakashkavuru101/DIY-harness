@@ -1,0 +1,24 @@
+{
+  "name": "diy-harness",
+  "version": "0.1.0",
+  "description": "Build a custom harness for your project together with you, one stage-gated step at a time, from L0 to L4.",
+  "author": { "name": "Aakash Kavuru" },
+  "license": "MIT",
+  "skills": [
+    "./skills/code-review",
+    "./skills/codebase-design",
+    "./skills/diagnosing-bugs",
+    "./skills/diy-harness",
+    "./skills/domain-modeling",
+    "./skills/grilling",
+    "./skills/ponytail-audit",
+    "./skills/ponytail-debt",
+    "./skills/ponytail",
+    "./skills/pr",
+    "./skills/prototype",
+    "./skills/research",
+    "./skills/tdd",
+    "./skills/wizard",
+    "./skills/writing-for-agents"
+  ]
+}

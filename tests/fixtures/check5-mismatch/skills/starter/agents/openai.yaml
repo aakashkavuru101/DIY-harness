@@ -1,0 +1,5 @@
+interface:
+  display_name: "Starter"
+  short_description: "Fixture"
+policy:
+  allow_implicit_invocation: true

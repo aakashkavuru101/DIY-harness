@@ -1,6 +1,6 @@
 # Ticket 05: parent stub and manifests
 
-Status: open
+Status: closed
 Blocked by: 02, 03
 GOAL lines: M1, C4, C9, N4 · Spec: docs/spec/05 sections 1 and 3, 06 section 2 (checks 5, 7, 10)
 

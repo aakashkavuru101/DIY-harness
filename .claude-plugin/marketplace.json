@@ -1,0 +1,8 @@
+{
+  "name": "diy-harness",
+  "description": "DIY-harness: one command that builds a custom harness for your project with you.",
+  "owner": { "name": "<org>" },
+  "plugins": [
+    { "name": "diy-harness", "source": "./", "description": "Build a custom harness for your project together with you, one stage-gated step at a time, from L0 to L4." }
+  ]
+}

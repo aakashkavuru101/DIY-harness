@@ -1,0 +1,8 @@
+{
+  "name": "demo-plugin",
+  "description": "Fixture marketplace.",
+  "owner": { "name": "Fixture Author" },
+  "plugins": [
+    { "name": "demo-plugin", "source": "./", "description": "Fixture plugin." }
+  ]
+}

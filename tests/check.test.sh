@@ -55,6 +55,24 @@ expect "$fx/check3-forms" nonzero "check 3: $p:1:" "check 3: $p:2:" "check 3: $p
 refute "check 3: $p:3:"
 expect "$fx/skills-pass" 0 "warning: check 8: skills/demo/SKILL.md: no URL or pinned commit"
 
+# Check 5: disable-model-invocation matches allow_implicit_invocation. Check 7: one version across manifests.
+# Manifest skills: the .claude-plugin skills array equals the folders under skills/.
+# Check 10: claude plugin validate . --strict, when the claude CLI is on PATH.
+expect "$fx/manifests-pass" 0
+expect "$fx/check5-mismatch" nonzero "check 5" "skills/starter"
+expect "$fx/check5-implicit-off" nonzero "check 5" "skills/demo"
+expect "$fx/check7-version-mismatch" nonzero "check 7" ".codex-plugin/plugin.json" "2.0.0"
+expect "$fx/skills-array-missing" nonzero "check manifest-skills" "skills/demo"
+expect "$fx/skills-array-extra" nonzero "check manifest-skills" "skills/ghost"
+if command -v claude >/dev/null 2>&1; then
+  expect "$fx/check10-invalid" nonzero "check 10" ".claude-plugin"
+else
+  echo "SKIP: claude CLI not on PATH, check 10 failure not exercised"; skips=$((skips + 1))
+fi
+# Without the CLI check 10 is skipped with a printed note, not failed
+out=$(PATH=/usr/bin:/bin sh scripts/check.sh "$fx/manifests-pass" 2>&1) || fail "manifests-pass without claude on PATH: $out"
+case $out in *"check 10 skipped"*) ;; *) fail "no 'check 10 skipped' note without claude on PATH. Output: $out" ;; esac
+
 # Check 8, diff half: a vendored file that differs from its upstream clone at the pin needs a vendor/PATCHES.md row.
 # Built at run time because the upstream clone must be a git repository.
 g8="$tmp/diff8" src="$tmp/diff8/upstream/demo"
@@ -83,6 +101,12 @@ mv "$tmp/SKILL.md.keep" "$g8/skills/demo/SKILL.md"
 echo "moved on" >> "$src/skills/x/demo/agents/openai.yaml" &&
   git -C "$src" -c user.name=t -c user.email=t@example.invalid -c commit.gpgsign=false commit -qam later || exit 1
 expect "$g8" 0
+# A file in the "DIY-harness's own files" section counts as listed and is not diffed against any upstream
+{ upstream_md "$pin"; printf "\n## DIY-harness's own files\n\n| File | Upstream path |\n| --- | --- |\n| \`skills/demo/OWN.md\` | none |\n"; } > "$g8/vendor/UPSTREAM.md"
+echo "own" > "$g8/skills/demo/OWN.md"
+expect "$g8" 0
+refute "OWN.md"
+rm "$g8/skills/demo/OWN.md"
 upstream_md 0000000000000000000000000000000000000000 > "$g8/vendor/UPSTREAM.md"
 expect "$g8" nonzero "check 8" "skills/demo/SKILL.md" "pin"
 upstream_md "$pin" > "$g8/vendor/UPSTREAM.md" && rm -rf "$g8/upstream"
@@ -102,6 +126,10 @@ expect "$gt" nonzero "check no-telemetry" "hooks/claude-band.json"
 # The real repo
 expect . 0
 grep -rq setup-matt-pocock-skills skills && fail "skills/ still mentions setup-matt-pocock-skills"
+for f in .claude-plugin/plugin.json .claude-plugin/marketplace.json .codex-plugin/plugin.json \
+  skills/diy-harness/SKILL.md skills/diy-harness/agents/openai.yaml; do
+  [ -f "$f" ] || fail "$f missing"
+done
 for f in skills/diy-harness/references/playbooks/to-spec.md skills/diy-harness/references/playbooks/to-tickets.md \
   skills/diy-harness/references/playbooks/implement.md skills/diy-harness/references/playbooks/implement-spec.md \
   skills/diy-harness/references/playbooks/retro.md; do

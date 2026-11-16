@@ -1,0 +1,5 @@
+interface:
+  display_name: "DIY Harness"
+  short_description: "Build your project's harness with you, one step at a time"
+policy:
+  allow_implicit_invocation: false
