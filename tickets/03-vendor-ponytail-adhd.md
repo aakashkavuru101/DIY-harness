@@ -1,6 +1,6 @@
 # Ticket 03: vendor ponytail and i-have-adhd
 
-Status: open
+Status: closed
 Blocked by: 01
 GOAL lines: M1, C7, C8, N2 · Spec: docs/spec/03 section 2, 05 section 1, ADR 0001 (D7)
 
