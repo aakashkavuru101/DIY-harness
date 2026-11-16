@@ -16,6 +16,8 @@ expect() {
     case $out in *"$text"*) ;; *) fail "$root: output lacks '$text'. Output: $out" ;; esac
   done
 }
+# refute <text>: the output of the last expect must not contain <text>
+refute() { case $out in *"$1"*) fail "$root: output has '$1'. Output: $out" ;; esac; }
 
 # Check 9: licences and NOTICE
 expect "$fx/check9-pass" 0
@@ -45,6 +47,13 @@ expect "$fx/check2-unknown-skill" nonzero "check 2" "skills/demo/SKILL.md" "nope
 expect "$fx/check2-user-invoked" nonzero "check 2" "skills/demo/SKILL.md" "manual"
 expect "$fx/check3-dropped-in-playbook" nonzero "check 3" "skills/parent/references/playbooks/to-spec.md" "setup-matt-pocock-skills"
 expect "$fx/check3-user-invoked-playbook" nonzero "check 3" "skills/parent/references/playbooks/flow.md" "to-tickets"
+expect "$fx/check2-twice-for" nonzero "check 2" "skills/demo/SKILL.md" "nope"
+refute "\`demo\`"
+expect "$fx/check2-wrong-case" nonzero "check 2" "skills/demo/SKILL.md" "Demo"
+p=skills/parent/references/playbooks/forms.md
+expect "$fx/check3-forms" nonzero "check 3: $p:1:" "check 3: $p:2:" "check 3: $p:4:" "check 3: $p:5:" "check 3: $p:6:" "check 3: $p:7:"
+refute "check 3: $p:3:"
+expect "$fx/skills-pass" 0 "warning: check 8: skills/demo/SKILL.md: no URL or pinned commit"
 
 # Check 8, diff half: a vendored file that differs from its upstream clone at the pin needs a vendor/PATCHES.md row.
 # Built at run time because the upstream clone must be a git repository.
@@ -66,6 +75,10 @@ echo "local change" >> "$g8/skills/demo/SKILL.md"
 expect "$g8" nonzero "check 8" "skills/demo/SKILL.md" "vendor/PATCHES.md"
 printf '| File | Why | Decision |\n| --- | --- | --- |\n| `skills/demo/SKILL.md` | test patch | none |\n' > "$g8/vendor/PATCHES.md"
 expect "$g8" 0
+# A patched file that is deleted is still caught: its PATCHES.md row does not excuse a missing file
+mv "$g8/skills/demo/SKILL.md" "$tmp/SKILL.md.keep"
+expect "$g8" nonzero "check 8" "skills/demo/SKILL.md" "missing"
+mv "$tmp/SKILL.md.keep" "$g8/skills/demo/SKILL.md"
 # The comparison is against the pin, not the clone's current HEAD
 echo "moved on" >> "$src/skills/x/demo/agents/openai.yaml" &&
   git -C "$src" -c user.name=t -c user.email=t@example.invalid -c commit.gpgsign=false commit -qam later || exit 1

@@ -27,43 +27,55 @@ for f in skills/*/SKILL.md; do
   [ -n "$(frontmatter "$f" description)" ] || report 1 "$f" "frontmatter has no description"
 done
 
-# Check 2: every "Skill tool with `<name>`" (or "<name>") under skills/ names a model-invoked sibling skills/<name>/.
-calls=$([ -d skills ] && grep -rnoiE 'skill tool with [`"][A-Za-z0-9_-]+[`"]' skills)
+# A Skill tool call names one or more quoted skills: 'Skill tool with `tdd`', 'Skill tool twice, for "a" and "b"'.
+Q='[`"][A-Za-z0-9_-]+[`"]'
+CALL="[Ss]kill tool (with|twice, for|for) ($Q(, | and |, and ))*"
+
+# Check 2: every skill a Skill tool call names under skills/ is a model-invoked sibling folder skills/<name>/.
+# The folder name must match exactly: a case-insensitive disk (macOS) would otherwise find skills/TDD as skills/tdd.
+is_skill() { for d in skills/*/; do [ "$d" = "skills/$1/" ] && [ -f "${d}SKILL.md" ] && return 0; done; return 1; }
+calls=$([ -d skills ] && grep -rnoE "$CALL$Q" skills)
 while IFS= read -r c; do
   [ -n "$c" ] || continue
   file=${c%%:*}; rest=${c#*:}; loc="$file:${rest%%:*}"
-  name=$(printf '%s' "${rest#*:}" | sed 's/.*[`"]\([A-Za-z0-9_-]*\)[`"]$/\1/')
-  if [ ! -f "skills/$name/SKILL.md" ]; then report 2 "$loc" "calls \`$name\`, but skills/$name/SKILL.md does not exist"
-  elif [ "$(frontmatter "skills/$name/SKILL.md" disable-model-invocation)" = true ]; then
-    report 2 "$loc" "calls \`$name\`, which is user-invoked"
-  fi
+  for name in $(printf '%s\n' "${rest#*:}" | sed 's/^[^`"]*//' | grep -oE "$Q" | tr -d '`"'); do
+    if ! is_skill "$name"; then report 2 "$loc" "calls \`$name\`, but there is no skills/$name/SKILL.md"
+    elif [ "$(frontmatter "skills/$name/SKILL.md" disable-model-invocation)" = true ]; then
+      report 2 "$loc" "calls \`$name\`, which is user-invoked"
+    fi
+  done
 done <<EOF
 $calls
 EOF
 
 # Check 3 (doc 03 section 2): no line under skills/ names a dropped or parked skill, or tells the agent to call a
-# user-invoked one (a playbook, or a skill with disable-model-invocation: true). Only reference forms count
-# (/name, ../name/, "Skill tool with name", and `name` for dropped ones): triage, teach, handoff are also plain words.
+# user-invoked one (a playbook, or a skill with disable-model-invocation: true).
+# Names that are also plain English words count only in reference forms; the others count wherever they appear.
 # ponytail-review is listed too: merged into code-review (D3), never shipped as a skill.
-DROPPED="handoff grill-me grill-with-docs ask-matt setup-matt-pocock-skills triage wayfinder
-  improve-codebase-architecture teach to-questionnaire wait-what ponytail-gain ponytail-help ponytail-review"
+DROPPED_WORDS="handoff triage teach"
+DROPPED_NAMES="grill-me grill-with-docs ask-matt setup-matt-pocock-skills wayfinder improve-codebase-architecture
+  to-questionnaire wait-what ponytail-gain ponytail-help ponytail-review"
 USER_INVOKED=$(for f in skills/*/references/playbooks/*.md; do [ -f "$f" ] && basename "$f" .md; done
   for f in skills/*/SKILL.md; do
     [ -f "$f" ] && [ "$(frontmatter "$f" disable-model-invocation)" = true ] && basename "${f%/SKILL.md}"
   done)
-# refs <name> <extra ERE alternative>: file:line of every reference to <name> under skills/
-refs() {
-  [ -d skills ] && grep -rnE "(^|[^A-Za-z0-9_./-])/$1([^A-Za-z0-9_-]|\$)|\.\./$1/|[Ss]kill tool with [\`\"]$1[\`\"]$2" skills |
-    cut -d: -f1,2
-}
-for name in $DROPPED; do
+# Reference forms of <name>: /name, ../name/, `name`, or a Skill tool call naming it
+ref_re() { printf '%s' "(^|[^A-Za-z0-9_./-])/$1([^A-Za-z0-9_-]|\$)|\.\./$1/|$CALL[\`\"]$1[\`\"]$2"; }
+# grep_locs <ERE>: file:line of every match under skills/
+grep_locs() { [ -d skills ] && grep -rnE "$1" skills | cut -d: -f1,2; }
+for name in $DROPPED_WORDS $DROPPED_NAMES; do
+  case " $DROPPED_WORDS " in *" $name "*) re=$(ref_re "$name" "|\`$name\`") ;;
+    *) re="(^|[^A-Za-z0-9_-])$name([^A-Za-z0-9_-]|\$)" ;; esac
   while IFS= read -r loc; do [ -n "$loc" ] && report 3 "$loc" "names dropped skill '$name'"; done <<EOF
-$(refs "$name" "|\`$name\`")
+$(grep_locs "$re")
 EOF
 done
 for name in $USER_INVOKED; do
-  while IFS= read -r loc; do [ -n "$loc" ] && report 3 "$loc" "tells the agent to call user-invoked '$name'"; done <<EOF
-$(refs "$name" "")
+  while IFS= read -r loc; do
+    case $loc in ""|"skills/$name/"*) continue ;; esac  # a skill may name itself ("re-run /diy-harness")
+    report 3 "$loc" "tells the agent to call user-invoked '$name'"
+  done <<EOF
+$(grep_locs "$(ref_re "$name" "")")
 EOF
 done
 
