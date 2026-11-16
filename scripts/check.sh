@@ -1,7 +1,8 @@
 #!/bin/sh
 # Static checks (docs/spec/06 section 2). Usage: scripts/check.sh [repo-root]
 # Prints one line per failure: "check <n>: <file>: <why>". Exits non-zero if any failed.
-# Check 6 runs <repo-root>/core/build-agents-md.mjs with node, so point this only at a tree you trust.
+# Check 6 and the budget check run <repo-root>/core/build-agents-md.mjs and hooks/session-start.mjs with node,
+# so point this only at a tree you trust.
 root=${1:-$(dirname "$0")/..}
 CDPATH= cd -- "$root" || { echo "check.sh: cannot enter $root"; exit 2; }
 failed=0
@@ -105,6 +106,34 @@ if [ -f core/build-agents-md.mjs ] || [ -f AGENTS.md ]; then
   elif ! printf '%s' "${built%.}" | cmp -s - AGENTS.md; then
     report 6 AGENTS.md "differs from a fresh build; run node core/build-agents-md.mjs --write"
   fi
+fi
+
+# Budget (doc 05 section 2): the layer is at most about 4,000 tokens, estimated as bytes / 4. Per part (PLAN.md Q7):
+# Claude Code caps one hook's output at 10,000 characters, so each part the hook prints, header included, must fit
+# in 10,000 bytes (bytes are never fewer than characters).
+if [ -f AGENTS.md ]; then
+  b=$(($(wc -c < AGENTS.md)))
+  [ "$b" -le 16000 ] ||
+    report budget AGENTS.md "about $((b / 4)) tokens (bytes / 4), over the 4,000 budget; trim i-have-adhd's examples first, keep every rule"
+fi
+if [ -f hooks/session-start.mjs ] && command -v node >/dev/null 2>&1; then
+  for p in $(node -e 'import("./core/build-agents-md.mjs").then((m) => console.log(m.PARTS.join(" ")))' 2>/dev/null); do
+    b=$(($(node hooks/session-start.mjs SessionStart "$p" < /dev/null | wc -c)))
+    if [ "$b" -eq 0 ]; then report budget "hooks/session-start.mjs $p" "prints nothing"
+    elif [ "$b" -gt 10000 ]; then
+      report budget "hooks/session-start.mjs $p" "prints $b bytes, over Claude Code's 10,000-character cap on one hook's output"
+    fi
+  done
+fi
+
+# Hook wiring (PLAN.md Q8, ADR 0002): Claude Code loads hooks/hooks.json by itself and merges any hooks file the
+# manifest names, so plugin.json must not name it again.
+if [ -f .claude-plugin/plugin.json ] &&
+  tr -d '\n' < .claude-plugin/plugin.json | grep -qE '"hooks"[[:space:]]*:[^]}]*hooks/hooks\.json'; then
+  report hooks-wiring .claude-plugin/plugin.json "names hooks/hooks.json, which Claude Code already loads; it may run every hook twice"
+fi
+if [ -f hooks/session-start.mjs ] && [ ! -f hooks/hooks.json ]; then
+  report hooks-wiring hooks/hooks.json "missing; without it Claude Code never runs hooks/session-start.mjs"
 fi
 
 # listed <file> <table.md>: <file> is the first cell of a table row in <table.md>
@@ -217,19 +246,21 @@ done <<EOF
 $mdfiles
 EOF
 
-# No-network check (spec 07 section 9): no file under hooks/ references a network API. hooks/ may be absent.
+# No-network check (spec 07 section 9): no file under hooks/ references a network API, nor the builder the hook runs
+# in every session (core/build-agents-md.mjs). Either may be absent.
 # shortcut: a pattern scan. It matches the words fetch, curl, wget, WebSocket and XMLHttpRequest, URLs, /dev/tcp,
 # and quoted network module names. A name built from strings passes. Hooks stay short enough to read (IN10).
-if [ -d hooks ]; then
+net_scan=$( [ -d hooks ] && echo hooks; [ -e core/build-agents-md.mjs ] && echo core/build-agents-md.mjs )
+if [ -n "$net_scan" ]; then
   NET='(^|[^A-Za-z0-9_$])fetch([^A-Za-z0-9_$]|$)|https?://|(^|[^A-Za-z0-9_-])(curl|wget)([^A-Za-z0-9_-]|$)'
   NET="$NET|[\"'\`](node:)?(https?|http2|net|dgram|tls|dns|undici)(/promises)?[\"'\`]|WebSocket|XMLHttpRequest|/dev/(tcp|udp)/"
   # -a: a NUL byte must not make grep treat a hook as binary and hide or garble the match
   while IFS= read -r loc; do [ -n "$loc" ] && report no-network "$loc" "references a network API"; done <<EOF
-$(grep -rnaE "$NET" hooks | cut -d: -f1,2)
+$(grep -rnaHE "$NET" $net_scan | cut -d: -f1,2)
 EOF
   # grep -r does not read through symlinks, so a linked hook would pass unread
-  while IFS= read -r l; do [ -n "$l" ] && report no-network "$l" "is a symlink; hooks must be plain files"; done <<EOF
-$(find hooks -type l)
+  while IFS= read -r l; do [ -n "$l" ] && report no-network "$l" "is a symlink; hooks and the builder they run must be plain files"; done <<EOF
+$(find $net_scan -type l)
 EOF
 fi
 
