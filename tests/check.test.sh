@@ -30,8 +30,24 @@ expect "$fx/check9-licence-is-dir" nonzero "check 9" "vendor/LICENSES/ponytail"
 expect "$fx/check9-notice-missing" nonzero "check 9" "NOTICE: missing"
 expect "$fx/check9-notice-slug-only" nonzero "check 9" "NOTICE" "DietrichGebert"
 
+# Check 1: skill frontmatter. Check 8 (listing): every file under skills/ is in vendor/UPSTREAM.md
+expect "$fx/skills-pass" 0
+expect "$fx/check1-name-mismatch" nonzero "check 1" "skills/demo/SKILL.md" "name"
+expect "$fx/check1-no-description" nonzero "check 1" "skills/demo/SKILL.md" "description"
+expect "$fx/check8-unlisted-file" nonzero "check 8" "skills/demo/EXTRA.md"
+
 # The real repo
 expect . 0
+
+# The eleven mattpocock engine skills are vendored unchanged from the pin
+if [ -d upstream ]; then
+  for gn in engineering/code-review engineering/codebase-design engineering/diagnosing-bugs \
+    engineering/domain-modeling engineering/pr engineering/prototype engineering/research \
+    engineering/tdd engineering/wizard productivity/grilling productivity/writing-for-agents; do
+    diff -r "upstream/skills/skills/$gn" "skills/${gn#*/}" >/dev/null 2>&1 ||
+      fail "skills/${gn#*/} differs from upstream/skills/skills/$gn"
+  done
+fi
 
 # Vendored licences are byte-identical to upstream (upstream/ is git-ignored, so absent in a fresh clone)
 if [ -d upstream ]; then

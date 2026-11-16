@@ -7,6 +7,36 @@ failed=0
 
 report() { echo "check $1: $2: $3"; failed=1; }
 
+# frontmatter <file> <key>: value of a top-level key in the leading --- block, quotes stripped
+frontmatter() {
+  awk -v key="$2" 'NR == 1 { if ($0 != "---") exit; next }
+    $0 == "---" { exit }
+    index($0, key ":") == 1 { v = substr($0, length(key) + 2); gsub(/^[ \t]+|[ \t]+$/, "", v)
+      if (v ~ /^".*"$/ || v ~ /^\047.*\047$/) v = substr(v, 2, length(v) - 2); print v; exit }' "$1"
+}
+
+# Check 1: every skills/*/SKILL.md has frontmatter with name == folder and a description.
+for f in skills/*/SKILL.md; do
+  [ -f "$f" ] || continue
+  dir=${f%/SKILL.md}; dir=${dir#skills/}
+  name=$(frontmatter "$f" name)
+  [ "$name" = "$dir" ] || report 1 "$f" "frontmatter name '$name' does not match folder '$dir'"
+  [ -n "$(frontmatter "$f" description)" ] || report 1 "$f" "frontmatter has no description"
+done
+
+# Check 8 (listing half): every file under skills/ is listed in vendor/UPSTREAM.md as `skills/...`.
+if [ -d skills ]; then
+  # .DS_Store is git-ignored macOS clutter, never vendored
+  unlisted=$(find skills -type f ! -name .DS_Store | sort | while IFS= read -r f; do
+    [ -f vendor/UPSTREAM.md ] && grep -qF "\`$f\`" vendor/UPSTREAM.md || echo "$f"
+  done)
+  while IFS= read -r f; do
+    [ -n "$f" ] && report 8 "$f" "not listed in vendor/UPSTREAM.md"
+  done <<EOF
+$unlisted
+EOF
+fi
+
 # Check 9: three licence texts in vendor/LICENSES/, NOTICE names all three authors.
 for name in mattpocock-skills ponytail i-have-adhd; do
   f=vendor/LICENSES/$name
