@@ -1,6 +1,6 @@
 # Ticket 07: the always-on hook
 
-Status: open
+Status: closed
 Blocked by: none (built as Aakash answered Q7 and Q8 in `PLAN.md`)
 GOAL lines: M2, C6, C7 · Decisions: D5, D6, D11, Q7, Q8 · Spec: docs/spec/05 sections 2 and 3, 07 section 9
 

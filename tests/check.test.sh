@@ -205,6 +205,51 @@ expect "$v" nonzero "check no-network: hooks/sub/link.mjs" "symlink"
 mkvariant check9-pass && ln -s "$PWD/$fx/hooks-network/hooks" "$v/hooks"
 expect "$v" nonzero "check no-network: hooks:" "symlink"
 
+# Hook wiring (PLAN Q8): Claude Code loads hooks/hooks.json by itself, so plugin.json must not name it again
+mkvariant manifests-pass
+sed -i.bak 's|"version"|"hooks": "./hooks/hooks.json", "version"|' "$v/.claude-plugin/plugin.json" &&
+  mkdir -p "$v/hooks" && echo '{"hooks": {}}' > "$v/hooks/hooks.json"
+expect "$v" nonzero "check hooks-wiring: .claude-plugin/plugin.json"
+mkvariant manifests-pass
+sed -i.bak 's|"version"|"hooks": ["./hooks/hooks.json"], "version"|' "$v/.claude-plugin/plugin.json" &&
+  mkdir -p "$v/hooks" && echo '{"hooks": {}}' > "$v/hooks/hooks.json"
+expect "$v" nonzero "check hooks-wiring: .claude-plugin/plugin.json"
+
+# Budget (doc 05 section 2, PLAN Q7): AGENTS.md at most about 4,000 tokens (bytes / 4), and each part the hook
+# prints within Claude Code's 10,000-character cap. Built at run time around copies of the real builder and hook.
+b7="$tmp/budget"
+budget_fixture() {  # <bytes of i-have-adhd text>
+  rm -rf "$b7" && mkdir -p "$b7/core" "$b7/hooks" "$b7/skills/ponytail" && cp -R "$fx/check9-pass/." "$b7/" &&
+    cp core/build-agents-md.mjs "$b7/core/" && cp hooks/session-start.mjs hooks/hooks.json "$b7/hooks/" &&
+    printf '# Agreement\n\nBe equals.\n' > "$b7/core/agreement.md" &&
+    printf '%s\n' --- "name: ponytail" "description: d" --- "" "# Ponytail" "" "Be lazy." > "$b7/skills/ponytail/SKILL.md" &&
+    { echo "# ADHD"; awk -v n="$1" 'BEGIN { while (n > 0) { print "Be brief, be brief, be brief, be brief, be brief."; n -= 50 } }'; } \
+      > "$b7/core/i-have-adhd.md" &&
+    printf "## DIY-harness's own files\n\n| File | Upstream path |\n| --- | --- |\n| \`skills/ponytail/SKILL.md\` | none |\n" \
+      > "$b7/vendor/UPSTREAM.md" && node "$b7/core/build-agents-md.mjs" --write || exit 1
+}
+budget_fixture 2000
+expect "$b7" 0
+# A session-start hook with no hooks/hooks.json never runs: the layer would vanish with every other check green
+rm "$b7/hooks/hooks.json"
+expect "$b7" nonzero "check hooks-wiring: hooks/hooks.json" "missing"
+# The hook runs the builder in every session, so the no-network scan covers it too
+budget_fixture 2000
+# Never called, so the test itself makes no request
+printf '%s\n' 'function unused(u) { return fetch(u); }' >> "$b7/core/build-agents-md.mjs"
+expect "$b7" nonzero "check no-network: core/build-agents-md.mjs:"
+# With no hooks/ folder the builder is the only file scanned; the report must still name it
+rm -rf "$b7/hooks"
+expect "$b7" nonzero "check no-network: core/build-agents-md.mjs:"
+budget_fixture 2000
+mv "$b7/core/build-agents-md.mjs" "$b7/core/real.mjs" && ln -s real.mjs "$b7/core/build-agents-md.mjs"
+expect "$b7" nonzero "check no-network: core/build-agents-md.mjs" "symlink"
+budget_fixture 11000
+expect "$b7" nonzero "check budget: hooks/session-start.mjs adhd" "10,000"
+refute "check budget: AGENTS.md"
+budget_fixture 17000
+expect "$b7" nonzero "check budget: AGENTS.md" "4,000"
+
 # The real repo
 expect . 0
 grep -rq setup-matt-pocock-skills skills && fail "skills/ still mentions setup-matt-pocock-skills"
@@ -220,6 +265,63 @@ trim() { awk 'NF && !s { s = NR } { a[NR] = $0 } NF { e = NR } END { for (i = s;
 nofm() { awk 'NR == 1 && $0 == "---" { fm = 1; next } fm && $0 == "---" { fm = 0; next } !fm' "$1"; }
 { trim < core/agreement.md; echo; nofm skills/ponytail/SKILL.md | trim; echo; trim < core/i-have-adhd.md; } |
   cmp -s - AGENTS.md || fail "AGENTS.md is not agreement, then ponytail, then i-have-adhd"
+
+# The always-on hook (ticket 07): one run per rule set, a header line, then exactly that part
+grep -q '"hooks"' .claude-plugin/plugin.json && fail ".claude-plugin/plugin.json names a hooks file (PLAN Q8)"
+grep -q '"owner": { "name": "aakashkavuru101" }' .claude-plugin/marketplace.json || fail "marketplace owner is not aakashkavuru101 (D11)"
+h_agreement="diy-harness always-on: the working agreement."
+h_ponytail='diy-harness always-on: ponytail rules. "stop ponytail" or "normal mode" switches them off.'
+h_adhd='diy-harness always-on: i-have-adhd rules. "stop adhd mode" or "normal mode" switches them off.'
+expected_part() {  # <part>: header line, a blank line, the part, as the hook should print it
+  eval "printf '%s\n\n' \"\$h_$1\""
+  case $1 in agreement) trim < core/agreement.md ;; ponytail) nofm skills/ponytail/SKILL.md | trim ;; adhd) trim < core/i-have-adhd.md ;; esac
+}
+for p in agreement ponytail adhd; do
+  expected_part "$p" > "$tmp/want.$p"
+  node hooks/session-start.mjs SessionStart "$p" < /dev/null > "$tmp/got.$p"; c=$?
+  [ "$c" -eq 0 ] && cmp -s "$tmp/want.$p" "$tmp/got.$p" || fail "SessionStart $p: exit $c, output differs from header + part"
+  # Stdin that is not JSON changes nothing
+  printf 'not json' | node hooks/session-start.mjs SessionStart "$p" > "$tmp/got.$p"; c=$?
+  [ "$c" -eq 0 ] && cmp -s "$tmp/want.$p" "$tmp/got.$p" || fail "SessionStart $p: garbled stdin gave exit $c or other output"
+done
+# A subagent gets ponytail and i-have-adhd as JSON additionalContext, and never the agreement
+for p in ponytail adhd; do
+  node hooks/session-start.mjs SubagentStart "$p" < /dev/null | node -e '
+    const fs = require("fs"); const o = JSON.parse(fs.readFileSync(0, "utf8")).hookSpecificOutput || {};
+    process.exit(o.hookEventName === "SubagentStart" && o.additionalContext === fs.readFileSync(process.argv[1], "utf8") ? 0 : 1)' \
+    "$tmp/want.$p" || fail "SubagentStart $p: not JSON additionalContext of header + part"
+done
+[ -z "$(node hooks/session-start.mjs SubagentStart agreement < /dev/null)" ] || fail "SubagentStart agreement printed something"
+[ -z "$(node hooks/session-start.mjs Bogus ponytail < /dev/null)$(node hooks/session-start.mjs SessionStart bogus < /dev/null)" ] ||
+  fail "an unknown event or part printed something"
+# hooks.json: SessionStart (startup, resume, clear, compact) runs all three parts, SubagentStart only two, each with a timeout
+node -e 'import("./core/build-agents-md.mjs").then(({ PARTS }) => {
+  const h = JSON.parse(require("fs").readFileSync("hooks/hooks.json", "utf8")).hooks;
+  const runs = (ev) => (h[ev] || []).flatMap((g) => g.hooks.map((x) => ({ m: g.matcher, t: x.timeout, c: x.command })));
+  const parts = (ev) => runs(ev).map((r) => (r.c.match(new RegExp("session-start\\.mjs\" " + ev + " (\\w+)$")) || [])[1]).join(",");
+  const ok = parts("SessionStart") === PARTS.join(",") && parts("SubagentStart") === "ponytail,adhd" &&
+    runs("SessionStart").every((r) => r.m === "startup|resume|clear|compact") &&
+    [...runs("SessionStart"), ...runs("SubagentStart")].every((r) => Number.isInteger(r.t) && r.t > 0 && r.t <= 30);
+  process.exit(ok ? 0 : 1) })' || fail "hooks/hooks.json does not wire the parts as ticket 07 says"
+# Stdin that never closes cannot hold the hook up
+node -e '
+  const p = require("child_process").spawn(process.execPath, ["hooks/session-start.mjs", "SessionStart", "ponytail"], { stdio: ["pipe", "pipe", "inherit"] });
+  let out = ""; p.stdout.on("data", (d) => (out += d));
+  const t = setTimeout(() => { p.kill(); process.exit(1); }, 2000);
+  const want = require("fs").readFileSync(process.argv[1], "utf8");
+  p.on("close", (c) => { clearTimeout(t); process.exit(c === 0 && out === want ? 0 : 1); });' "$tmp/want.ponytail" ||
+  fail "SessionStart ponytail did not finish within 2 seconds with stdin left open"
+# A missing source silences only its own part; the hook still exits 0
+hk="$tmp/hookcopy"
+mkdir -p "$hk/core" "$hk/hooks" "$hk/skills/ponytail" && cp core/build-agents-md.mjs core/agreement.md "$hk/core/" &&
+  cp hooks/session-start.mjs "$hk/hooks/" && cp skills/ponytail/SKILL.md "$hk/skills/ponytail/" || exit 1
+out=$(node "$hk/hooks/session-start.mjs" SessionStart adhd < /dev/null 2>&1); c=$?
+[ "$c" -eq 0 ] && [ -z "$out" ] || fail "SessionStart adhd with core/i-have-adhd.md missing: exit $c, output '$out'"
+node "$hk/hooks/session-start.mjs" SessionStart ponytail < /dev/null | cmp -s "$tmp/want.ponytail" - ||
+  fail "SessionStart ponytail stopped working when core/i-have-adhd.md went missing"
+rm "$hk/core/build-agents-md.mjs"
+out=$(node "$hk/hooks/session-start.mjs" SessionStart ponytail < /dev/null 2>&1); c=$?
+[ "$c" -eq 0 ] && [ -z "$out" ] || fail "hook with core/build-agents-md.mjs missing: exit $c, output '$out'"
 for f in skills/diy-harness/references/playbooks/to-spec.md skills/diy-harness/references/playbooks/to-tickets.md \
   skills/diy-harness/references/playbooks/implement.md skills/diy-harness/references/playbooks/implement-spec.md \
   skills/diy-harness/references/playbooks/retro.md; do
