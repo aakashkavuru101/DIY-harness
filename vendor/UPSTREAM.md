@@ -82,4 +82,4 @@ Taken as an always-on rule only, with no skill folder (document 05 section 1). N
 
 | File | Upstream path |
 | --- | --- |
-| `core/i-have-adhd.md` | `skills/i-have-adhd/SKILL.md` (body only: frontmatter block removed; `vendor/PATCHES.md` does not exist yet, ticket 04 records this change there) |
+| `core/i-have-adhd.md` | `skills/i-have-adhd/SKILL.md` (body only, frontmatter removed) |

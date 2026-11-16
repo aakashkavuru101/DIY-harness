@@ -42,6 +42,13 @@ expect "$fx/check8-unlisted-ponytail" nonzero "check 8" "skills/ponytail/SKILL.m
 # No-telemetry check (spec 07 section 9, D7): no band, board, statusline or webhook file outside the exempt dirs
 expect "$fx/telemetry-pass" 0
 expect "$fx/telemetry-statusline" nonzero "check no-telemetry" "hooks/ponytail-statusline.sh"
+# In a git work tree only files git sees count: a git-ignored copy (worktree, build output) is not "in the repo"
+gt="$tmp/gitrepo"
+mkdir -p "$gt" && cp -R "$fx/skills-pass/." "$gt/" && git -C "$gt" init -q && printf 'nested/\n' > "$gt/.gitignore" &&
+  mkdir -p "$gt/nested/hooks" && echo x > "$gt/nested/hooks/claude-band.json"
+expect "$gt" 0
+mkdir -p "$gt/hooks" && echo x > "$gt/hooks/claude-band.json"
+expect "$gt" nonzero "check no-telemetry" "hooks/claude-band.json"
 
 # The real repo
 expect . 0
