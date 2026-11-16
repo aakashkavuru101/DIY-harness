@@ -118,7 +118,8 @@ if [ -f AGENTS.md ]; then
 fi
 if [ -f hooks/session-start.mjs ] && command -v node >/dev/null 2>&1; then
   for p in $(node -e 'import("./core/build-agents-md.mjs").then((m) => console.log(m.PARTS.join(" ")))' 2>/dev/null); do
-    b=$(($(node hooks/session-start.mjs SessionStart "$p" < /dev/null | wc -c)))
+    # DIY_HARNESS_OFF emptied: measure the real part, not the developer's off notice
+    b=$(($(DIY_HARNESS_OFF= node hooks/session-start.mjs SessionStart "$p" < /dev/null | wc -c)))
     if [ "$b" -eq 0 ]; then report budget "hooks/session-start.mjs $p" "prints nothing"
     elif [ "$b" -gt 10000 ]; then
       report budget "hooks/session-start.mjs $p" "prints $b bytes, over Claude Code's 10,000-character cap on one hook's output"
