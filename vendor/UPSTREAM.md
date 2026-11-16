@@ -50,6 +50,17 @@ listed in `vendor/PATCHES.md`.
 | `skills/writing-for-agents/SKILL-MECHANICS.md` | `skills/productivity/writing-for-agents/SKILL-MECHANICS.md` |
 | `skills/writing-for-agents/SKILL.md` | `skills/productivity/writing-for-agents/SKILL.md` |
 
+The five user-invoked commands below are stage playbooks inside the parent (D1): the `SKILL.md` only,
+not their `agents/openai.yaml`.
+
+| File | Upstream path |
+| --- | --- |
+| `skills/diy-harness/references/playbooks/to-spec.md` | `skills/engineering/to-spec/SKILL.md` |
+| `skills/diy-harness/references/playbooks/to-tickets.md` | `skills/engineering/to-tickets/SKILL.md` |
+| `skills/diy-harness/references/playbooks/implement.md` | `skills/engineering/implement/SKILL.md` |
+| `skills/diy-harness/references/playbooks/implement-spec.md` | `skills/engineering/implement-spec/SKILL.md` |
+| `skills/diy-harness/references/playbooks/retro.md` | `skills/engineering/retro/SKILL.md` |
+
 ## DietrichGebert/ponytail
 
 | Field | Value |

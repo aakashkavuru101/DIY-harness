@@ -27,16 +27,100 @@ for f in skills/*/SKILL.md; do
   [ -n "$(frontmatter "$f" description)" ] || report 1 "$f" "frontmatter has no description"
 done
 
+# A Skill tool call names one or more quoted skills: 'Skill tool with `tdd`', 'Skill tool twice, for "a" and "b"'.
+Q='[`"][A-Za-z0-9_-]+[`"]'
+CALL="[Ss]kill tool (with|twice, for|for) ($Q(, | and |, and ))*"
+
+# Check 2: every skill a Skill tool call names under skills/ is a model-invoked sibling folder skills/<name>/.
+# The folder name must match exactly: a case-insensitive disk (macOS) would otherwise find skills/TDD as skills/tdd.
+is_skill() { for d in skills/*/; do [ "$d" = "skills/$1/" ] && [ -f "${d}SKILL.md" ] && return 0; done; return 1; }
+calls=$([ -d skills ] && grep -rnoE "$CALL$Q" skills)
+while IFS= read -r c; do
+  [ -n "$c" ] || continue
+  file=${c%%:*}; rest=${c#*:}; loc="$file:${rest%%:*}"
+  for name in $(printf '%s\n' "${rest#*:}" | sed 's/^[^`"]*//' | grep -oE "$Q" | tr -d '`"'); do
+    if ! is_skill "$name"; then report 2 "$loc" "calls \`$name\`, but there is no skills/$name/SKILL.md"
+    elif [ "$(frontmatter "skills/$name/SKILL.md" disable-model-invocation)" = true ]; then
+      report 2 "$loc" "calls \`$name\`, which is user-invoked"
+    fi
+  done
+done <<EOF
+$calls
+EOF
+
+# Check 3 (doc 03 section 2): no line under skills/ names a dropped or parked skill, or tells the agent to call a
+# user-invoked one (a playbook, or a skill with disable-model-invocation: true).
+# Names that are also plain English words count only in reference forms; the others count wherever they appear.
+# ponytail-review is listed too: merged into code-review (D3), never shipped as a skill.
+DROPPED_WORDS="handoff triage teach"
+DROPPED_NAMES="grill-me grill-with-docs ask-matt setup-matt-pocock-skills wayfinder improve-codebase-architecture
+  to-questionnaire wait-what ponytail-gain ponytail-help ponytail-review"
+USER_INVOKED=$(for f in skills/*/references/playbooks/*.md; do [ -f "$f" ] && basename "$f" .md; done
+  for f in skills/*/SKILL.md; do
+    [ -f "$f" ] && [ "$(frontmatter "$f" disable-model-invocation)" = true ] && basename "${f%/SKILL.md}"
+  done)
+# Reference forms of <name>: /name, ../name/, `name`, or a Skill tool call naming it
+ref_re() { printf '%s' "(^|[^A-Za-z0-9_./-])/$1([^A-Za-z0-9_-]|\$)|\.\./$1/|$CALL[\`\"]$1[\`\"]$2"; }
+# grep_locs <ERE>: file:line of every match under skills/
+grep_locs() { [ -d skills ] && grep -rnE "$1" skills | cut -d: -f1,2; }
+for name in $DROPPED_WORDS $DROPPED_NAMES; do
+  case " $DROPPED_WORDS " in *" $name "*) re=$(ref_re "$name" "|\`$name\`") ;;
+    *) re="(^|[^A-Za-z0-9_-])$name([^A-Za-z0-9_-]|\$)" ;; esac
+  while IFS= read -r loc; do [ -n "$loc" ] && report 3 "$loc" "names dropped skill '$name'"; done <<EOF
+$(grep_locs "$re")
+EOF
+done
+for name in $USER_INVOKED; do
+  while IFS= read -r loc; do
+    case $loc in ""|"skills/$name/"*) continue ;; esac  # a skill may name itself ("re-run /diy-harness")
+    report 3 "$loc" "tells the agent to call user-invoked '$name'"
+  done <<EOF
+$(grep_locs "$(ref_re "$name" "")")
+EOF
+done
+
+# listed <file> <table.md>: <file> is the first cell of a table row in <table.md>
+listed() { [ -f "$2" ] && grep -q "^| \`$(printf '%s' "$1" | sed 's/[][\.*^$]/\\&/g')\` |" "$2"; }
+
 # Check 8 (listing half): every file under skills/ is a table row in vendor/UPSTREAM.md, first cell `skills/...`.
 if [ -d skills ]; then
   # .DS_Store is git-ignored macOS clutter, never vendored
   unlisted=$(find skills -type f ! -name .DS_Store | sort | while IFS= read -r f; do
-    [ -f vendor/UPSTREAM.md ] && grep -q "^| \`$(printf '%s' "$f" | sed 's/[][\.*^$]/\\&/g')\` |" vendor/UPSTREAM.md || echo "$f"
+    listed "$f" vendor/UPSTREAM.md || echo "$f"
   done)
   while IFS= read -r f; do
     [ -n "$f" ] && report 8 "$f" "not listed in vendor/UPSTREAM.md"
   done <<EOF
 $unlisted
+EOF
+fi
+
+# Check 8 (diff half): every file in vendor/UPSTREAM.md that differs from its upstream clone at the pinned commit
+# has a vendor/PATCHES.md row. A section's clone is upstream/<last part of its URL> (ADR 0002 H3). The comparison
+# uses the pinned commit, not the clone's checkout. An absent clone is skipped with a warning.
+if [ -f vendor/UPSTREAM.md ]; then
+  rows=$(awk -F'`' '/^## / { url = ""; pin = "" }
+    /^\| URL \|/ { split($0, u, " "); url = u[4] }
+    /^\| Pinned commit \|/ { pin = $2 }
+    /^\| `/ { print url "|" pin "|" $2 "|" $4 }' vendor/UPSTREAM.md)
+  warned=
+  while IFS='|' read -r url pin local up; do
+    [ -n "$local" ] || continue
+    if [ -z "$url" ] || [ -z "$pin" ]; then
+      echo "warning: check 8: $local: no URL or pinned commit above its row in vendor/UPSTREAM.md, diff not checked" >&2
+      continue
+    fi
+    clone=upstream/${url##*/}
+    if [ ! -d "$clone" ]; then
+      case " $warned " in *" $clone "*) ;; *) echo "warning: check 8: $clone absent, diff half skipped for it" >&2
+        warned="$warned $clone" ;; esac
+    elif [ ! -f "$local" ]; then report 8 "$local" "listed in vendor/UPSTREAM.md but missing"
+    elif ! git -C "$clone" cat-file -e "$pin:$up" 2>/dev/null; then report 8 "$local" "$clone has no $up at pin $pin"
+    elif ! git -C "$clone" show "$pin:$up" | cmp -s - "$local" && ! listed "$local" vendor/PATCHES.md; then
+      report 8 "$local" "differs from $clone at the pin and has no vendor/PATCHES.md row"
+    fi
+  done <<EOF
+$rows
 EOF
 fi
 

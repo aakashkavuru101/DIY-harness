@@ -1,6 +1,6 @@
 # Ticket 04: playbooks and required patches
 
-Status: open
+Status: closed
 Blocked by: 02
 GOAL lines: M1, C4, C8 · Spec: docs/spec/03 sections 1, 2 and 6, 06 section 2 (checks 2, 3, 8), ADR 0001 (D1)
 
