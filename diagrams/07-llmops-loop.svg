@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 372" width="960" height="372" font-family="DejaVu Sans, Verdana, Arial, sans-serif" role="img" aria-label="The harness operating loop">
+<title>The harness operating loop</title>
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#1B2A41"/></marker><marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2F6FDB"/></marker></defs>
+<rect width="960" height="372" fill="#FFFFFF"/>
+<text x="28.0" y="26.0" font-size="14" fill="#1B2A41" text-anchor="start" font-weight="bold">Operating loop: a harness that is never measured only grows</text>
+<rect x="28" y="48" width="250" height="96" rx="8" fill="#EEF3FC" stroke="#1B2A41" stroke-width="1.4"/>
+<text x="153.0" y="66.0" font-size="9" fill="#2F6FDB" text-anchor="middle" font-weight="bold">1</text>
+<text x="153.0" y="84.0" font-size="12" fill="#1B2A41" text-anchor="middle" font-weight="bold">Instrument</text>
+<text x="153.0" y="101.5" font-size="9.5" fill="#5B6576" text-anchor="middle">Hooks write one JSON line per event. Local files,</text>
+<text x="153.0" y="114.0" font-size="9.5" fill="#5B6576" text-anchor="middle">git-ignored</text>
+<line x1="278" y1="96" x2="354" y2="96" stroke="#1B2A41" stroke-width="1.5" marker-end="url(#a)"/>
+<rect x="355" y="48" width="250" height="96" rx="8" fill="#EEF3FC" stroke="#1B2A41" stroke-width="1.4"/>
+<text x="480.0" y="66.0" font-size="9" fill="#2F6FDB" text-anchor="middle" font-weight="bold">2</text>
+<text x="480.0" y="84.0" font-size="12" fill="#1B2A41" text-anchor="middle" font-weight="bold">Observe</text>
+<text x="480.0" y="101.5" font-size="9.5" fill="#5B6576" text-anchor="middle">Cost and time per merged change, first-pass</text>
+<text x="480.0" y="114.0" font-size="9.5" fill="#5B6576" text-anchor="middle">rate, guard blocks, fire rates</text>
+<line x1="605" y1="96" x2="681" y2="96" stroke="#1B2A41" stroke-width="1.5" marker-end="url(#a)"/>
+<rect x="682" y="48" width="250" height="96" rx="8" fill="#EEF3FC" stroke="#1B2A41" stroke-width="1.4"/>
+<text x="807.0" y="66.0" font-size="9" fill="#2F6FDB" text-anchor="middle" font-weight="bold">3</text>
+<text x="807.0" y="84.0" font-size="12" fill="#1B2A41" text-anchor="middle" font-weight="bold">Diagnose</text>
+<text x="807.0" y="101.5" font-size="9.5" fill="#5B6576" text-anchor="middle">Read the transcript. Which harness gap caused</text>
+<text x="807.0" y="114.0" font-size="9.5" fill="#5B6576" text-anchor="middle">this? Add to the failure log</text>
+<rect x="28" y="236" width="250" height="96" rx="8" fill="#DCE7FA" stroke="#1B2A41" stroke-width="1.4"/>
+<text x="153.0" y="254.0" font-size="9" fill="#2F6FDB" text-anchor="middle" font-weight="bold">6</text>
+<text x="153.0" y="272.0" font-size="12" fill="#1B2A41" text-anchor="middle" font-weight="bold">Release and watch</text>
+<text x="153.0" y="289.5" font-size="9.5" fill="#5B6576" text-anchor="middle">Move the pin, canary on one project, keep or</text>
+<text x="153.0" y="302.0" font-size="9.5" fill="#5B6576" text-anchor="middle">revert with git</text>
+<rect x="355" y="236" width="250" height="96" rx="8" fill="#DCE7FA" stroke="#1B2A41" stroke-width="1.4"/>
+<text x="480.0" y="254.0" font-size="9" fill="#2F6FDB" text-anchor="middle" font-weight="bold">5</text>
+<text x="480.0" y="272.0" font-size="12" fill="#1B2A41" text-anchor="middle" font-weight="bold">Verify</text>
+<text x="480.0" y="289.5" font-size="9.5" fill="#5B6576" text-anchor="middle">Regression suite stays green, capability suite</text>
+<text x="480.0" y="302.0" font-size="9.5" fill="#5B6576" text-anchor="middle">climbs, ablate to prune</text>
+<line x1="355" y1="284" x2="279" y2="284" stroke="#1B2A41" stroke-width="1.5" marker-end="url(#a)"/>
+<rect x="682" y="236" width="250" height="96" rx="8" fill="#DCE7FA" stroke="#1B2A41" stroke-width="1.4"/>
+<text x="807.0" y="254.0" font-size="9" fill="#2F6FDB" text-anchor="middle" font-weight="bold">4</text>
+<text x="807.0" y="272.0" font-size="12" fill="#1B2A41" text-anchor="middle" font-weight="bold">Change</text>
+<text x="807.0" y="289.5" font-size="9.5" fill="#5B6576" text-anchor="middle">One harness change, by reviewed pull request,</text>
+<text x="807.0" y="302.0" font-size="9.5" fill="#5B6576" text-anchor="middle">version bumped</text>
+<line x1="682" y1="284" x2="606" y2="284" stroke="#1B2A41" stroke-width="1.5" marker-end="url(#a)"/>
+<line x1="807.0" y1="144" x2="807.0" y2="234" stroke="#1B2A41" stroke-width="1.5" marker-end="url(#a)"/>
+<line x1="153.0" y1="234" x2="153.0" y2="146" stroke="#1B2A41" stroke-width="1.5" marker-end="url(#a)"/>
+<rect x="318" y="164" width="324" height="52" rx="8" fill="#FFF4E0" stroke="#B7791F" stroke-width="1.4"/>
+<text x="480.0" y="186.0" font-size="10.5" fill="#7A4F0E" text-anchor="middle" font-weight="bold">Nothing leaves the machine by default.</text>
+<text x="480.0" y="202.0" font-size="9.5" fill="#7A4F0E" text-anchor="middle">Content capture and export are opt-in.</text>
+<text x="28.0" y="358.0" font-size="9.5" fill="#5B6576" text-anchor="start">Triggers: every retro · monthly pruning · a new model or agent version · an upstream engine change · an incident (same day)</text>
+</svg>

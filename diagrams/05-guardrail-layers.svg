@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 388" width="960" height="388" font-family="DejaVu Sans, Verdana, Arial, sans-serif" role="img" aria-label="The six guardrail layers from advice to enforcement">
+<title>The six guardrail layers from advice to enforcement</title>
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#1B2A41"/></marker><marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2F6FDB"/></marker></defs>
+<rect width="960" height="388" fill="#FFFFFF"/>
+<text x="28.0" y="26.0" font-size="14" fill="#1B2A41" text-anchor="start" font-weight="bold">Six guardrail layers: each assumes the one before it may slip</text>
+<rect x="28" y="120" width="92" height="84" rx="8" fill="#1B2A41" stroke="#1B2A41" stroke-width="1.4"/>
+<text x="74.0" y="141.0" font-size="11" fill="#FFFFFF" text-anchor="middle" font-weight="bold">Agent</text>
+<text x="74.0" y="153.0" font-size="11" fill="#FFFFFF" text-anchor="middle" font-weight="bold">wants to</text>
+<text x="74.0" y="165.0" font-size="11" fill="#FFFFFF" text-anchor="middle" font-weight="bold">act</text>
+<rect x="138" y="86" width="112" height="152" rx="8" fill="#F4F7FD" stroke="#1B2A41" stroke-width="1.4"/>
+<text x="194.0" y="104.0" font-size="9" fill="#2F6FDB" text-anchor="middle" font-weight="bold">1</text>
+<text x="194.0" y="121.5" font-size="11.5" fill="#1B2A41" text-anchor="middle" font-weight="bold">Guides</text>
+<text x="194.0" y="139.0" font-size="9.5" fill="#5B6576" text-anchor="middle">Goal lock, scoped</text>
+<text x="194.0" y="151.5" font-size="9.5" fill="#5B6576" text-anchor="middle">rules,</text>
+<text x="194.0" y="164.0" font-size="9.5" fill="#5B6576" text-anchor="middle">untrusted-content</text>
+<text x="194.0" y="176.5" font-size="9.5" fill="#5B6576" text-anchor="middle">rule</text>
+<text x="194.0" y="212.0" font-size="8.5" fill="#B45309" text-anchor="middle" font-weight="bold">advice: the model can</text>
+<text x="194.0" y="223.0" font-size="8.5" fill="#B45309" text-anchor="middle" font-weight="bold">ignore it</text>
+<line x1="120" y1="162" x2="137" y2="162" stroke="#1B2A41" stroke-width="1.5" marker-end="url(#a)"/>
+<rect x="262" y="86" width="112" height="152" rx="8" fill="#EEF3FC" stroke="#1B2A41" stroke-width="1.4"/>
+<text x="318.0" y="104.0" font-size="9" fill="#2F6FDB" text-anchor="middle" font-weight="bold">2</text>
+<text x="318.0" y="121.5" font-size="11.5" fill="#1B2A41" text-anchor="middle" font-weight="bold">Tool surface</text>
+<text x="318.0" y="139.0" font-size="9.5" fill="#5B6576" text-anchor="middle">Only the tools this</text>
+<text x="318.0" y="151.5" font-size="9.5" fill="#5B6576" text-anchor="middle">task needs</text>
+<text x="318.0" y="212.0" font-size="8.5" fill="#2F6FDB" text-anchor="middle" font-weight="bold">structural</text>
+<line x1="251" y1="162" x2="261" y2="162" stroke="#1B2A41" stroke-width="1.5" marker-end="url(#a)"/>
+<rect x="386" y="86" width="112" height="152" rx="8" fill="#DCE7FA" stroke="#1B2A41" stroke-width="1.4"/>
+<text x="442.0" y="104.0" font-size="9" fill="#2F6FDB" text-anchor="middle" font-weight="bold">3</text>
+<text x="442.0" y="121.5" font-size="11.5" fill="#1B2A41" text-anchor="middle" font-weight="bold">Permission</text>
+<text x="442.0" y="134.0" font-size="11.5" fill="#1B2A41" text-anchor="middle" font-weight="bold">policy</text>
+<text x="442.0" y="151.5" font-size="9.5" fill="#5B6576" text-anchor="middle">Deny rules, narrow</text>
+<text x="442.0" y="164.0" font-size="9.5" fill="#5B6576" text-anchor="middle">allowlists</text>
+<text x="442.0" y="212.0" font-size="8.5" fill="#2F6FDB" text-anchor="middle" font-weight="bold">enforced by the agent</text>
+<line x1="375" y1="162" x2="385" y2="162" stroke="#1B2A41" stroke-width="1.5" marker-end="url(#a)"/>
+<rect x="510" y="86" width="112" height="152" rx="8" fill="#C5D6F5" stroke="#1B2A41" stroke-width="1.4"/>
+<text x="566.0" y="104.0" font-size="9" fill="#2F6FDB" text-anchor="middle" font-weight="bold">4</text>
+<text x="566.0" y="121.5" font-size="11.5" fill="#1B2A41" text-anchor="middle" font-weight="bold">Hooks</text>
+<text x="566.0" y="139.0" font-size="9.5" fill="#5B6576" text-anchor="middle">Script vetoes the</text>
+<text x="566.0" y="151.5" font-size="9.5" fill="#5B6576" text-anchor="middle">call before it runs</text>
+<text x="566.0" y="212.0" font-size="8.5" fill="#2F6FDB" text-anchor="middle" font-weight="bold">enforced by our code</text>
+<line x1="499" y1="162" x2="509" y2="162" stroke="#1B2A41" stroke-width="1.5" marker-end="url(#a)"/>
+<rect x="634" y="86" width="112" height="152" rx="8" fill="#AFC5F0" stroke="#1B2A41" stroke-width="1.4"/>
+<text x="690.0" y="104.0" font-size="9" fill="#2F6FDB" text-anchor="middle" font-weight="bold">5</text>
+<text x="690.0" y="121.5" font-size="11.5" fill="#1B2A41" text-anchor="middle" font-weight="bold">Sandbox</text>
+<text x="690.0" y="139.0" font-size="9.5" fill="#5B6576" text-anchor="middle">No writes outside</text>
+<text x="690.0" y="151.5" font-size="9.5" fill="#5B6576" text-anchor="middle">the workspace;</text>
+<text x="690.0" y="164.0" font-size="9.5" fill="#5B6576" text-anchor="middle">egress allowlist</text>
+<text x="690.0" y="212.0" font-size="8.5" fill="#2F6FDB" text-anchor="middle" font-weight="bold">enforced by the OS</text>
+<line x1="623" y1="162" x2="633" y2="162" stroke="#1B2A41" stroke-width="1.5" marker-end="url(#a)"/>
+<line x1="747" y1="162" x2="757" y2="162" stroke="#1B2A41" stroke-width="1.5" marker-end="url(#a)"/>
+<rect x="758" y="120" width="74" height="84" rx="8" fill="#FFFFFF" stroke="#1B2A41" stroke-width="1.4"/>
+<text x="795.0" y="141.0" font-size="11" fill="#1B2A41" text-anchor="middle" font-weight="bold">Action</text>
+<text x="795.0" y="153.0" font-size="11" fill="#1B2A41" text-anchor="middle" font-weight="bold">runs</text>
+<line x1="832" y1="162" x2="845" y2="162" stroke="#1B2A41" stroke-width="1.5" marker-end="url(#a)"/>
+<rect x="846" y="86" width="86" height="152" rx="8" fill="#E6F4EA" stroke="#2E7D4F" stroke-width="1.4"/>
+<text x="889.0" y="104.0" font-size="9" fill="#2F6FDB" text-anchor="middle" font-weight="bold">6</text>
+<text x="889.0" y="120.0" font-size="10" fill="#1B2A41" text-anchor="middle" font-weight="bold">Sensors</text>
+<text x="889.0" y="131.0" font-size="10" fill="#1B2A41" text-anchor="middle" font-weight="bold">and gates</text>
+<text x="889.0" y="147.3" font-size="8.3" fill="#5B6576" text-anchor="middle">Checks, review,</text>
+<text x="889.0" y="158.6" font-size="8.3" fill="#5B6576" text-anchor="middle">CI. A person</text>
+<text x="889.0" y="169.9" font-size="8.3" fill="#5B6576" text-anchor="middle">signs off</text>
+<text x="889.0" y="181.2" font-size="8.3" fill="#5B6576" text-anchor="middle">high-impact</text>
+<text x="889.0" y="192.5" font-size="8.3" fill="#5B6576" text-anchor="middle">changes</text>
+<text x="480.0" y="66.0" font-size="9.5" fill="#5B6576" text-anchor="middle">blocked at any layer: the message says what was blocked, why, and what to do instead</text>
+<rect x="28" y="262" width="904" height="40" rx="8" fill="#FFF4E0" stroke="#B7791F" stroke-width="1.4"/>
+<text x="480.0" y="287.0" font-size="10.5" fill="#7A4F0E" text-anchor="middle" font-weight="bold">Underneath all six: a clean environment. A secret that is out of reach cannot leak.</text>
+<text x="28.0" y="330.0" font-size="10" fill="#1B2A41" text-anchor="start" font-weight="bold">Rules for every guard:</text>
+<text x="28.0" y="347.0" font-size="9.5" fill="#5B6576" text-anchor="start">match patterns, not descriptions · test both directions (must block, must allow) · fail with the fix · quiet when green</text>
+<text x="28.0" y="362.0" font-size="9.5" fill="#5B6576" text-anchor="start">never end a policy in "ask me" · keep guards outside the agent's write set · give each an expiry condition · log every block</text>
+</svg>

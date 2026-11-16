@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 372" width="960" height="372" font-family="DejaVu Sans, Verdana, Arial, sans-serif" role="img" aria-label="DIY-harness stage flow: seven stages with a user gate after each, and the retro loop">
+<title>DIY-harness stage flow: seven stages with a user gate after each, and the retro loop</title>
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#1B2A41"/></marker><marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2F6FDB"/></marker></defs>
+<rect width="960" height="372" fill="#FFFFFF"/>
+<text x="28.0" y="26.0" font-size="14" fill="#1B2A41" text-anchor="start" font-weight="bold">/diy-harness: seven stages, a gate after each</text>
+<rect x="28" y="48" width="112" height="132" rx="8" fill="#EEF3FC" stroke="#1B2A41" stroke-width="1.4"/>
+<text x="84.0" y="66.0" font-size="9" fill="#2F6FDB" text-anchor="middle" font-weight="bold">S0</text>
+<text x="84.0" y="84.0" font-size="12" fill="#1B2A41" text-anchor="middle" font-weight="bold">Orient</text>
+<text x="84.0" y="101.5" font-size="9.5" fill="#5B6576" text-anchor="middle">Resume from</text>
+<text x="84.0" y="114.0" font-size="9.5" fill="#5B6576" text-anchor="middle">STATE.md, or scan</text>
+<text x="84.0" y="126.5" font-size="9.5" fill="#5B6576" text-anchor="middle">the repo</text>
+<text x="84.0" y="196.0" font-size="8.5" fill="#2F6FDB" text-anchor="middle">subagent scan</text>
+<line x1="140" y1="114.0" x2="159" y2="114.0" stroke="#1B2A41" stroke-width="1.5" marker-end="url(#a)"/>
+<path d="M149.0 95.0 L154.0 100.0 L149.0 105.0 L144.0 100.0 Z" fill="#2F6FDB"/>
+<rect x="160" y="48" width="112" height="132" rx="8" fill="#EEF3FC" stroke="#1B2A41" stroke-width="1.4"/>
+<text x="216.0" y="66.0" font-size="9" fill="#2F6FDB" text-anchor="middle" font-weight="bold">S1</text>
+<text x="216.0" y="84.0" font-size="12" fill="#1B2A41" text-anchor="middle" font-weight="bold">Lock the goal</text>
+<text x="216.0" y="101.5" font-size="9.5" fill="#5B6576" text-anchor="middle">Goal, done criteria,</text>
+<text x="216.0" y="114.0" font-size="9.5" fill="#5B6576" text-anchor="middle">non-goals, known</text>
+<text x="216.0" y="126.5" font-size="9.5" fill="#5B6576" text-anchor="middle">failures</text>
+<text x="216.0" y="196.0" font-size="8.5" fill="#2F6FDB" text-anchor="middle">grilling ·</text>
+<text x="216.0" y="207.0" font-size="8.5" fill="#2F6FDB" text-anchor="middle">domain-modeling</text>
+<line x1="272" y1="114.0" x2="291" y2="114.0" stroke="#1B2A41" stroke-width="1.5" marker-end="url(#a)"/>
+<path d="M281.0 95.0 L286.0 100.0 L281.0 105.0 L276.0 100.0 Z" fill="#2F6FDB"/>
+<rect x="292" y="48" width="112" height="132" rx="8" fill="#EEF3FC" stroke="#1B2A41" stroke-width="1.4"/>
+<text x="348.0" y="66.0" font-size="9" fill="#2F6FDB" text-anchor="middle" font-weight="bold">S2</text>
+<text x="348.0" y="84.0" font-size="12" fill="#1B2A41" text-anchor="middle" font-weight="bold">Assess</text>
+<text x="348.0" y="101.5" font-size="9.5" fill="#5B6576" text-anchor="middle">Audit the repo,</text>
+<text x="348.0" y="114.0" font-size="9.5" fill="#5B6576" text-anchor="middle">propose a level L0</text>
+<text x="348.0" y="126.5" font-size="9.5" fill="#5B6576" text-anchor="middle">to L4</text>
+<text x="348.0" y="196.0" font-size="8.5" fill="#2F6FDB" text-anchor="middle">ponytail-audit</text>
+<line x1="404" y1="114.0" x2="423" y2="114.0" stroke="#1B2A41" stroke-width="1.5" marker-end="url(#a)"/>
+<path d="M413.0 95.0 L418.0 100.0 L413.0 105.0 L408.0 100.0 Z" fill="#2F6FDB"/>
+<rect x="424" y="48" width="112" height="132" rx="8" fill="#EEF3FC" stroke="#1B2A41" stroke-width="1.4"/>
+<text x="480.0" y="66.0" font-size="9" fill="#2F6FDB" text-anchor="middle" font-weight="bold">S3</text>
+<text x="480.0" y="84.0" font-size="12" fill="#1B2A41" text-anchor="middle" font-weight="bold">Design</text>
+<text x="480.0" y="101.5" font-size="9.5" fill="#5B6576" text-anchor="middle">Pick earned parts</text>
+<text x="480.0" y="114.0" font-size="9.5" fill="#5B6576" text-anchor="middle">across five planes</text>
+<text x="480.0" y="196.0" font-size="8.5" fill="#2F6FDB" text-anchor="middle">codebase-design ·</text>
+<text x="480.0" y="207.0" font-size="8.5" fill="#2F6FDB" text-anchor="middle">to-spec</text>
+<line x1="536" y1="114.0" x2="555" y2="114.0" stroke="#1B2A41" stroke-width="1.5" marker-end="url(#a)"/>
+<path d="M545.0 95.0 L550.0 100.0 L545.0 105.0 L540.0 100.0 Z" fill="#2F6FDB"/>
+<rect x="556" y="48" width="112" height="132" rx="8" fill="#EEF3FC" stroke="#1B2A41" stroke-width="1.4"/>
+<text x="612.0" y="66.0" font-size="9" fill="#2F6FDB" text-anchor="middle" font-weight="bold">S4</text>
+<text x="612.0" y="84.0" font-size="12" fill="#1B2A41" text-anchor="middle" font-weight="bold">Slice</text>
+<text x="612.0" y="101.5" font-size="9.5" fill="#5B6576" text-anchor="middle">Tracer-bullet</text>
+<text x="612.0" y="114.0" font-size="9.5" fill="#5B6576" text-anchor="middle">tickets with</text>
+<text x="612.0" y="126.5" font-size="9.5" fill="#5B6576" text-anchor="middle">blockers</text>
+<text x="612.0" y="196.0" font-size="8.5" fill="#2F6FDB" text-anchor="middle">to-tickets</text>
+<line x1="668" y1="114.0" x2="687" y2="114.0" stroke="#1B2A41" stroke-width="1.5" marker-end="url(#a)"/>
+<path d="M677.0 95.0 L682.0 100.0 L677.0 105.0 L672.0 100.0 Z" fill="#2F6FDB"/>
+<rect x="688" y="48" width="112" height="132" rx="8" fill="#DCE7FA" stroke="#1B2A41" stroke-width="1.4"/>
+<text x="744.0" y="66.0" font-size="9" fill="#2F6FDB" text-anchor="middle" font-weight="bold">S5</text>
+<text x="744.0" y="84.0" font-size="12" fill="#1B2A41" text-anchor="middle" font-weight="bold">Build</text>
+<text x="744.0" y="101.5" font-size="9.5" fill="#5B6576" text-anchor="middle">One ticket: proof,</text>
+<text x="744.0" y="114.0" font-size="9.5" fill="#5B6576" text-anchor="middle">build, review,</text>
+<text x="744.0" y="126.5" font-size="9.5" fill="#5B6576" text-anchor="middle">commit</text>
+<text x="744.0" y="196.0" font-size="8.5" fill="#2F6FDB" text-anchor="middle">tdd · code-review</text>
+<line x1="800" y1="114.0" x2="819" y2="114.0" stroke="#1B2A41" stroke-width="1.5" marker-end="url(#a)"/>
+<path d="M809.0 95.0 L814.0 100.0 L809.0 105.0 L804.0 100.0 Z" fill="#2F6FDB"/>
+<rect x="820" y="48" width="112" height="132" rx="8" fill="#EEF3FC" stroke="#1B2A41" stroke-width="1.4"/>
+<text x="876.0" y="66.0" font-size="9" fill="#2F6FDB" text-anchor="middle" font-weight="bold">S6</text>
+<text x="876.0" y="84.0" font-size="12" fill="#1B2A41" text-anchor="middle" font-weight="bold">Retro</text>
+<text x="876.0" y="101.5" font-size="9.5" fill="#5B6576" text-anchor="middle">Learn from real</text>
+<text x="876.0" y="114.0" font-size="9.5" fill="#5B6576" text-anchor="middle">use; level up or</text>
+<text x="876.0" y="126.5" font-size="9.5" fill="#5B6576" text-anchor="middle">down</text>
+<text x="876.0" y="196.0" font-size="8.5" fill="#2F6FDB" text-anchor="middle">retro · ponytail-debt</text>
+<path d="M864.0 224 L864.0 252 L744.0 252 L744.0 227" fill="none" stroke="#2F6FDB" stroke-width="1.5" marker-end="url(#b)" stroke-dasharray="5 4"/>
+<text x="804.0" y="267.0" font-size="9" fill="#2F6FDB" text-anchor="middle">accepted finding = new ticket</text>
+<path d="M888.0 224 L888.0 296 L348.0 296 L348.0 210" fill="none" stroke="#2F6FDB" stroke-width="1.5" marker-end="url(#b)" stroke-dasharray="5 4"/>
+<text x="612.0" y="311.0" font-size="9" fill="#2F6FDB" text-anchor="middle">failure above the ceiling = level-up proposal · no-op part = removal proposal</text>
+<path d="M36 345 L41 350 L36 355 L31 350 Z" fill="#2F6FDB"/>
+<text x="48.0" y="354.0" font-size="9.5" fill="#5B6576" text-anchor="start">gate: the user approves before the next stage</text>
+<text x="330.0" y="354.0" font-size="9.5" fill="#2F6FDB" text-anchor="start">blue text: engine skills and playbooks the stage calls</text>
+<text x="660.0" y="354.0" font-size="9.5" fill="#5B6576" text-anchor="start">always on: agreement · ponytail · i-have-adhd</text>
+</svg>
