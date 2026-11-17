@@ -48,13 +48,18 @@ Then stop and ask Aakash before M3.
 ### Questions for Aakash
 
 Tickets that depend on one name it. Aakash answered Q1 to Q9 on 2026-11-16: Q1 to Q6 as recommended; Q7 to Q9 as
-the "Builder's recommendation" column says. Q7 to Q9 came from checking the Claude Code docs for ticket 07; the
+the "Builder's recommendation" column says. He set Q2's cost ceiling the same day: "cost is 5 USD max", and made it a
+total on 2026-11-17: "total cap not to exceed 5 USD", then raised it the same day: "i am increasing the cap to 10 USD
+for full M2". All paid runs together, the live checks of tickets 07 and 08 included, stay within 10 USD; `evals/RESULTS.md`
+is the ledger, and `evals/run_evals.py` gives a run at most what is left. Claude Code checks a budget only after
+each API call, so the runner starts no call unless what is left covers the dearest call so far; a call dearer than all
+before it can still overshoot by part of itself (`docs/adr/0003` R4). Q7 to Q9 came from checking the Claude Code docs for ticket 07; the
 facts go in `docs/adr/0003` with tickets 07 and 09.
 
 | # | Question | Conflict | Builder's recommendation (accepted) | Blocks |
 | --- | --- | --- | --- | --- |
 | Q1 | What may be written before the goal is approved? | E1 fails on any write before approval (document 06 section 4). Yet S0 creates `STATE.md`; the S1 gate has the user approve `GOAL.md` line by line, which implies the file exists; `domain-modeling` updates `GLOSSARY.md` "right there" and `research` writes a notes file; S2 stores the audit in `.harness/research/`. `GLOSSARY.md`, `docs/adr/` and `.harness/research/` are "from L1" (document 04 section 4), but no level exists before S2. `STATE.md` must fit on one screen and point at files rather than copy them (document 04 section 5), so it cannot hold the notes | (b): writes under `.harness/` are allowed before approval, and E1's "any file" means files outside `.harness/`. The draft `GOAL.md` and research notes live in `.harness/`. `GLOSSARY.md` and `docs/adr/` wait until the goal is approved and S2 picks L1 or above, by a parent instruction to `domain-modeling`; a vendor patch (with a decision ID and a PATCHES row) only if an eval shows the instruction fails. The alternative, (a): hold the draft goal, terms and notes in the conversation and write them all on approval | 11, 12, 13 |
-| Q2 | How many trials per case in M2, what counts as a pass, and what cost ceiling per run? | Document 06 section 5 asks for 3 trials, and warns that all-trials rules belong only on critical cases ("scope absolute rules to what must never happen"). None of the six M2 cases is critical. D16 (trials and budget) is due at M6 | 3 trials per case; a case passes when at least 2 of 3 pass and no trial hits its blocking behaviour; a ceiling per run that Aakash sets. Until then, ask before every paid run | 09 to 13 |
+| Q2 | How many trials per case in M2, what counts as a pass, and what cost ceiling per run? | Document 06 section 5 asks for 3 trials, and warns that all-trials rules belong only on critical cases ("scope absolute rules to what must never happen"). None of the six M2 cases is critical. D16 (trials and budget) is due at M6 | 3 trials per case; a case passes when at least 2 of 3 pass and no trial hits its blocking behaviour; a ceiling per run that Aakash sets. Until then, ask before every paid run (since 2026-11-17: a 10 USD total for M2, see above) | 09 to 13 |
 | Q3 | Build the eval runner in M2? | Document 03 section 2 schedules adapting i-have-adhd's runner for M6; document 06 section 6 needs cases passing in M2 | Yes: a minimal runner in M2 (ticket 09); the rubric, judge scores, baseline and release gate stay in M6 | 09 |
 | Q4 | Where do the project's own steering files rank? | Document 03 section 4 orders system rules, safety, the agreement, ponytail and i-have-adhd, but not the user's own `CLAUDE.md` or `AGENTS.md` | Right after safety, above the agreement: the user's own rules beat DIY-harness's | 10 |
 | Q5 | Three readings of the M2 cases in document 06 section 4 | E4 "continues ticket 03", but S5 arrives in M3. E12 says "any stage, any turn", but the stage is only known once the parent has read `STATE.md`. A repo with no check command (document 04 section 6) has no case | E4 passes when the agent offers to continue ticket 03 and waits (document 04 S0 step 1). E12's turns are `/diy-harness` and then one ordinary turn in the same session. The no-check-command edge gets its own new case in ticket 13, and E1 stays as written | 11, 13 |
@@ -89,7 +94,9 @@ budget carry more weight here.
   make it pass (document 04 S5 step 3). Static checks still cover structure.
 - A case that already passes before the change is kept as a regression guard, and the change needs another proof
   that goes red without it. If none exists, the change is not earned (C3): say so and ask Aakash.
-- Running an eval case costs tokens. Ask Aakash before every paid run until he sets the Q2 cost ceiling.
+- Running an eval case costs plan usage. All paid runs together stay within 10 USD for M2 (Q2), counted in
+  `evals/RESULTS.md`, and each run's cost is reported to Aakash. Work that would pass the total asks him first.
+- Ledger rows are committed with the PR of the work that paid for them, and never removed.
 - Out of M2: stages S3 to S6, Codex, `install.sh`, `sync-upstream.sh`, the baseline condition, rubric scores and
   the release gate (M6), the D3 and D4 patches. If a ticket seems to need one, stop and say so.
 

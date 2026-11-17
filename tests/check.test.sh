@@ -504,4 +504,11 @@ else
   echo "SKIP: upstream/ absent, licence and skill identity not checked"; skips=$((skips + 1))
 fi
 
+# Ticket 09: the eval runner's graders, turn rule, ceiling, isolation and token guard, with a stand-in claude
+if command -v python3 >/dev/null 2>&1; then
+  python3 -I -B tests/test_evals.py >"$tmp/evals.out" 2>&1 || fail "tests/test_evals.py: $(tail -n 30 "$tmp/evals.out")"
+else
+  echo "SKIP: python3 not on PATH, the eval runner tests not run"; skips=$((skips + 1))
+fi
+
 [ "$fails" -eq 0 ] && echo "PASS ($skips skipped)" || { echo "$fails failed"; exit 1; }

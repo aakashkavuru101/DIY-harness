@@ -1,7 +1,7 @@
 # Ticket 09: the eval runner
 
-Status: open
-Blocked by: none (built as Aakash answered Q2, Q3 and Q9 in `PLAN.md`; the Q2 cost ceiling is still his to set)
+Status: closed
+Blocked by: none (built as Aakash answered Q2, Q3 and Q9 in `PLAN.md`; he set the Q2 cost cap to 10 USD in total for all paid runs in M2, 2026-11-17)
 GOAL lines: M2, DN3, C7 · Decisions: D16 (pending, M6) · Spec: docs/spec/06 sections 4 and 5, 03 section 2
 
 ## What it makes work
