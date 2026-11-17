@@ -7,3 +7,6 @@ vendor/LICENSES/.
 - mattpocock/skills, by Matt Pocock (vendor/LICENSES/mattpocock-skills)
 - DietrichGebert/ponytail, by DietrichGebert (vendor/LICENSES/ponytail)
 - ayghri/i-have-adhd, by Ayoub Ghriss (vendor/LICENSES/i-have-adhd)
+
+evals/run_evals.py and evals/judge.py are adapted from i-have-adhd's scripts/run_evals.py,
+scripts/run_scenario_eval.py and scripts/judge.py.

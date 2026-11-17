@@ -48,7 +48,10 @@ Then stop and ask Aakash before M3.
 ### Questions for Aakash
 
 Tickets that depend on one name it. Aakash answered Q1 to Q9 on 2026-11-16: Q1 to Q6 as recommended; Q7 to Q9 as
-the "Builder's recommendation" column says. Q7 to Q9 came from checking the Claude Code docs for ticket 07; the
+the "Builder's recommendation" column says. He set Q2's cost ceiling the same day: "cost is 5 USD max", read as at
+most 5 USD for each run of `evals/run_evals.py`, which refuses a higher ceiling. Claude Code checks a budget only after
+each API call, so the runner starts no call unless what is left covers the dearest call so far; a call dearer than all
+before it can still overshoot by part of itself (`docs/adr/0003` R4). Q7 to Q9 came from checking the Claude Code docs for ticket 07; the
 facts go in `docs/adr/0003` with tickets 07 and 09.
 
 | # | Question | Conflict | Builder's recommendation (accepted) | Blocks |
@@ -89,7 +92,8 @@ budget carry more weight here.
   make it pass (document 04 S5 step 3). Static checks still cover structure.
 - A case that already passes before the change is kept as a regression guard, and the change needs another proof
   that goes red without it. If none exists, the change is not earned (C3): say so and ask Aakash.
-- Running an eval case costs tokens. Ask Aakash before every paid run until he sets the Q2 cost ceiling.
+- Running an eval case costs plan usage. Every run of the runner is capped at 5 USD (Q2) and its cost is reported to
+  Aakash. Work that needs more than one capped run, such as a full acceptance run that does not fit, asks him first.
 - Out of M2: stages S3 to S6, Codex, `install.sh`, `sync-upstream.sh`, the baseline condition, rubric scores and
   the release gate (M6), the D3 and D4 patches. If a ticket seems to need one, stop and say so.
 

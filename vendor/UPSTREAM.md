@@ -106,3 +106,5 @@ them against any upstream.
 | --- | --- |
 | `skills/diy-harness/SKILL.md` | none |
 | `skills/diy-harness/agents/openai.yaml` | none |
+| `evals/run_evals.py` | none; adapted from i-have-adhd `scripts/run_evals.py` and `scripts/run_scenario_eval.py` at 1ecea19 |
+| `evals/judge.py` | none; adapted from i-have-adhd `scripts/judge.py` at 1ecea19 |

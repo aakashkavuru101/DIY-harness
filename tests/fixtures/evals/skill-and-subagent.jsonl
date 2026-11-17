@@ -1,0 +1,2 @@
+{"type": "assistant", "message": {"content": [{"type": "tool_use", "id": "toolu_01WDQ4JaejgzC4VzeKPE1Zkx", "name": "Skill", "input": {"skill": "diy-harness:grilling"}}]}}
+{"type": "assistant", "message": {"content": [{"type": "tool_use", "id": "toolu_015TbEJUwnXMH2PRYR59L5Rb", "name": "Agent", "input": {"description": "Reply OK", "prompt": "Reply with the single word OK.", "subagent_type": "general-purpose", "run_in_background": false}}]}}
