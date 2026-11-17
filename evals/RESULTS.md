@@ -23,3 +23,7 @@ is plan usage, not a bill.
 | 2026-11-16 | 2.1.325 (Claude Code) | claude-sonnet-5-5 | smoke-isolation | 1 | $0.0813 | 1 of 1 cases passed |
 | 2026-11-16 | 2.1.325 (Claude Code) | claude-sonnet-5-5 | smoke-two-turn, smoke-env, smoke-skill-subagent, E4 | 1 | $0.2718 | 3 of 4 cases passed |
 | 2026-11-16 | 2.1.325 (Claude Code) | claude-sonnet-5-5 | smoke-two-turn | 1 | $0.0419 | 0 of 1 cases passed; stopped at the cost ceiling ($0.0419 of $0.01; the dearest call so far cost $0.0419) |
+| 2026-11-17 | 2.1.326 (Claude Code) | claude-sonnet-5-5 | lang-ja | 3 | $0.2176 | 0 of 1 cases passed |
+| 2026-11-17 | 2.1.326 (Claude Code) | claude-sonnet-5-5 | lang-ja | 3 | $0.2050 | 1 of 1 cases passed |
+| 2026-11-17 | 2.1.326 (Claude Code) | claude-sonnet-5-5 | smoke-two-turn | 1 | $0.0866 | 1 of 1 cases passed |
+| 2026-11-17 | 2.1.326 (Claude Code) | claude-sonnet-5-5 | smoke-two-turn (no plugin) | 1 | $0.0412 | 1 of 1 cases passed |

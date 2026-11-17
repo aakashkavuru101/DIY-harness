@@ -1,7 +1,7 @@
 # Ticket 10: the working agreement
 
-Status: open
-Blocked by: 07, 09 (built as Aakash answered Q2, Q4, Q6 and Q7 in `PLAN.md`)
+Status: closed
+Blocked by: 07, 09 (built as Aakash answered Q2, Q4, Q6 and Q7 in `PLAN.md`; the paid runs ran under his 10 USD total for M2, 2026-11-17, and are in `evals/RESULTS.md`)
 GOAL lines: M2, C1, C2, C3, C5 · Decisions: D8, D11 · Spec: docs/spec/04 section 2, 03 section 4
 
 ## What it makes work
