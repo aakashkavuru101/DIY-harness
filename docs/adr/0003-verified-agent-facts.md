@@ -25,7 +25,8 @@ run on 2.1.325.
 | H5 | `timeout` and failures | Docs; CLI 2.1.325 | Docs: `timeout`: "Seconds before canceling". The default is "600 for `command`, `http`, and `mcp_tool`". "Claude Code cancels a `command`, `http`, or `mcp_tool` hook that reaches its `timeout`, discarding the hook's output." Any other non-zero exit is a "Non-blocking error ... The action goes ahead". On exit 2, `SessionStart` and `SubagentStart` show "stderr to user only". Both hooks always exit 0. The session-start entries set `timeout: 10` and the prompt tracker sets `timeout: 5` | `tests/check.test.sh` (hooks.json wiring) |
 
 Rows H6 to H8 are the session facts ticket 08 relies on. They were observed on 2026-11-16 in three
-`claude -p --plugin-dir` runs on CLI 2.1.325, approved by Aakash, costing an estimated $1.09 in plan usage. All three
+`claude -p --plugin-dir` runs on CLI 2.1.325, approved by Aakash, costing an estimated $0.50 in plan usage: the session's total after the third run. (The
+$1.09 first written here added up the three runs' session totals; R4 shows why that counts twice.) All three
 ran in one throwaway project whose `.claude/settings.json` set `DIY_HARNESS_OFF` to `adhd`: "stop ponytail" with
 `--session-id`, then `--resume` with a subagent, then `--resume` with `/compact`.
 

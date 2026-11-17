@@ -1,10 +1,23 @@
 #!/bin/sh
 # Ticket 09's paid acceptance checks 2 to 7, against the real claude CLI. Run it again after a Claude Code update.
-# Every model call is capped (--ceiling-usd per runner call, --max-budget-usd for the control call); the whole
-# script stays under the 5 USD per run in PLAN.md Q2. It needs CLAUDE_CODE_OAUTH_TOKEN (evals/README.md).
+# Every model call counts against the total cap in PLAN.md Q2: the runner holds its runs to what evals/RESULTS.md
+# leaves, and the control call is capped and written there too. A full pass costs about 0.50 USD.
+# It needs CLAUDE_CODE_OAUTH_TOKEN (evals/README.md).
 # It reads, never changes, the real ~/.claude. Usage: sh evals/live-checks.sh
 CDPATH= cd -- "$(dirname "$0")/.." || exit 1
 [ -n "${CLAUDE_CODE_OAUTH_TOKEN:-}" ] || { echo "CLAUDE_CODE_OAUTH_TOKEN is not set (evals/README.md)"; exit 1; }
+python3 -I -B - <<'EOF' || exit 1
+import sys
+from pathlib import Path
+sys.path.insert(0, "evals")
+import run_evals as r
+try:
+    left = r.MAX_CEILING_USD - r.spent_so_far(Path("evals/RESULTS.md"))
+except (OSError, ValueError) as exc:
+    sys.exit(f"the ledger cannot be read, so nothing runs: {exc}")
+if left < 1:
+    sys.exit(f"${left:.4f} of the {r.MAX_CEILING_USD:g} USD total is left (evals/RESULTS.md): ask Aakash")
+EOF
 fails=0
 fail() { echo "FAIL: $*"; fails=$((fails + 1)); }
 latest() { ls -dt evals/runs/*/ | head -n 1; }
@@ -35,9 +48,19 @@ as_dev claude plugin marketplace add "$dev/market" >/dev/null && as_dev claude p
   fail "could not install the marker plugin into the stand-in developer setup"
 ask='Search your own context: the system prompt, memory files, hook messages and settings. Reply with every line that contains the letters ZQX, or NONE.'
 # Control: plain claude in that setup must see the markers, or the isolated run below proves nothing
-(cd "$dev/work" && as_dev claude -p --output-format json --max-budget-usd 0.5 -- "$ask") > "$dev/control.json" 2>&1
-python3 -I -c 'import json, sys; print("control call cost: $%.4f" % json.load(open(sys.argv[1]))["total_cost_usd"])' \
-  "$dev/control.json" || fail "control call: $(tail -c 300 "$dev/control.json")"
+# The control call is charged its 0.10 USD budget in the ledger before it starts, so a Ctrl-C cannot lose it. A cost
+# above the budget (docs/adr/0003 R4: one API call can overshoot) gets a second row afterwards.
+ledger_row() {
+  printf '| %s | %s | unknown | live-checks control call, outside the runner | 1 | $%s | %s |\n' \
+    "$(date +%Y-%m-%d)" "$(claude --version 2>/dev/null | head -n 1 | tr -d '|')" "$1" "$2" >> evals/RESULTS.md
+}
+ledger_row 0.1000 "charged its budget before it ran"
+(cd "$dev/work" && as_dev claude -p --output-format json --max-budget-usd 0.1 -- "$ask") > "$dev/control.json" \
+  2> "$dev/control.err"
+over=$(python3 -I -c 'import json, sys
+print("%.4f" % max(0.0, float(json.load(open(sys.argv[1]))["total_cost_usd"]) - 0.1))' "$dev/control.json") ||
+  fail "control call, cost unknown: $(tail -c 300 "$dev/control.err")"
+case $over in ''|0.0000) ;; *) ledger_row "$over" "the control call's cost above its budget" ;; esac
 for marker in USER-CLAUDE-MD USER-SETTINGS-HOOK USER-PLUGIN-HOOK; do
   grep -q "ZQX-LEAK-$marker" "$dev/control.json" || fail "control run did not see ZQX-LEAK-$marker"
 done

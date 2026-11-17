@@ -5,9 +5,11 @@ import argparse
 import json
 import os
 import shutil
+import signal
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 from pathlib import Path
 
@@ -16,7 +18,7 @@ sys.path.insert(0, str(ROOT / "evals"))
 import judge  # noqa: E402
 import run_evals as r  # noqa: E402
 
-TOKEN = "sk-ant-oat01-DUMMY-token-for-tests-0123456789"
+TOKEN = "sk-ant-" + "oat01-DUMMY-token-for-tests-0123456789"  # in two parts, so no secret scanner takes it for a key
 
 # The stand-in CLI, true to what CLI 2.1.325 was seen to do (docs/adr/0003 R4 to R6). It logs each call next to itself
 # and acts on prompt lines: "write <file> <text>", "cost <usd>", "tool <name> <json input>", "env" (a tool result that
@@ -78,6 +80,12 @@ for line in prompt.splitlines():
         events.append({"type": "user", "message": {"content": [{"type": "tool_result", "content": shown}]}})
     elif word == "reply-token":
         said = "the token is " + os.environ.get("CLAUDE_CODE_OAUTH_TOKEN", "")
+    elif word == "noresult":
+        print(json.dumps(events[0]))
+        sys.exit(1)
+    elif word == "sleep":
+        import time
+        time.sleep(float(rest))
     elif word == "store":
         Path(os.environ["CLAUDE_CONFIG_DIR"], "session.jsonl").write_text(os.environ.get("CLAUDE_CODE_OAUTH_TOKEN", ""))
 if "--tools" in args:
@@ -275,6 +283,8 @@ class Cases(unittest.TestCase):
             {**good, "turns": [{"say": "go", "max": 3}]},
             {**good, "turns": [{"say": "go", "until": {"check": "changed", "path": "a"}, "max": "2"}]},
             {**good, "git": "false"},
+            {**good, "id": "a|b"},
+            {**good, "id": "a\n"},
         ]
         (tmp / "cases.jsonl").write_text(json.dumps(good) + "\n")
         self.assertEqual(len(r.load_cases(tmp / "cases.jsonl")), 1)
@@ -300,6 +310,7 @@ class Runner(unittest.TestCase):
         self.dev = self.tmp / "dev"
         (self.dev / ".claude").mkdir(parents=True)
         (self.dev / ".claude" / "CLAUDE.md").write_text("developer memory\n")
+        (self.evals / "RESULTS.md").write_text(r.RESULTS_HEAD)
         self.env = {"PATH": f"{bin_dir}{os.pathsep}{os.environ['PATH']}", "HOME": str(self.dev),
                     "CLAUDE_CONFIG_DIR": str(self.dev / ".claude"), "TMPDIR": str(self.tmp),
                     "CLAUDE_CODE_OAUTH_TOKEN": TOKEN, "ANTHROPIC_API_KEY": "sk-dev-key", "DIY_HARNESS_OFF": "ponytail"}
@@ -368,6 +379,7 @@ class Runner(unittest.TestCase):
         self.assertIn("Cost: $0.5000", done.stdout)
         budgets = [call["argv"][call["argv"].index("--max-budget-usd") + 1] for call in calls]
         self.assertEqual(budgets, ["1.000000", "0.700000"])
+        self.assertAlmostEqual(r.spent_so_far(self.evals / "RESULTS.md"), 0.5, msg="the runner's own row reads back")
 
     def test_no_git_when_the_case_says_so(self):
         case = {"id": "plain", "fixture": "minimal", "git": False, "prompt": "hi", "passes": "p",
@@ -413,10 +425,77 @@ class Runner(unittest.TestCase):
         self.assertIn("stopped at the cost ceiling", done.stdout)
         self.assertIn("stopped at the cost ceiling", (self.evals / "RESULTS.md").read_text())
 
-    def test_a_ceiling_above_five_dollars_is_refused(self):
+    def ledger(self, *rows):
+        (self.evals / "RESULTS.md").write_text(r.RESULTS_HEAD + "".join(
+            f"| 2026-11-16 | v | m | earlier {n} | 1 | {cost} | x |\n" for n, cost in enumerate(rows)))
+
+    quiet = {"id": "x", "fixture": "minimal", "prompt": "hi", "passes": "p",
+             "pass_checks": [{"check": "changed", "path": "*", "not": True}]}
+
+    def test_the_total_cap_counts_every_earlier_run(self):
+        self.ledger("$2.0000", f"${r.MAX_CEILING_USD - 2.5:.4f}")
+        done, calls = self.run_cases([self.quiet], "--trials", "1")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertEqual(calls[0]["argv"][calls[0]["argv"].index("--max-budget-usd") + 1], "0.500000")
+
+    def test_no_run_below_the_floor(self):
+        self.ledger(f"${r.MAX_CEILING_USD - 0.05:.4f}")
+        done, calls = self.run_cases([self.quiet], "--trials", "1")
+        self.assertNotEqual(done.returncode, 0)
+        self.assertEqual(calls, [])
+        self.assertIn("ask Aakash", done.stderr)
+
+    def test_a_row_that_does_not_parse_stops_the_run(self):
+        for bad in ("~$0.40", "0.40", "$.40"):
+            self.ledger("$1.0000", bad)
+            done, calls = self.run_cases([self.quiet], "--trials", "1")
+            self.assertNotEqual(done.returncode, 0, bad)
+            self.assertEqual(calls, [], bad)
+            line = (self.evals / "RESULTS.md").read_text().splitlines().index(f"| 2026-11-16 | v | m | earlier 1 | 1 | {bad} | x |") + 1
+            self.assertIn(f"RESULTS.md:{line}", done.stderr, bad)
+
+    def test_a_row_without_outer_pipes_still_counts(self):
+        (self.evals / "RESULTS.md").write_text(r.RESULTS_HEAD + f"2026-11-16 | v | m | x | 1 | ${r.MAX_CEILING_USD - 0.5:.4f} | y\n")
+        done, calls = self.run_cases([self.quiet], "--trials", "1")
+        self.assertEqual(calls[0]["argv"][calls[0]["argv"].index("--max-budget-usd") + 1], "0.500000")
+
+    def test_an_unknown_cost_is_charged_at_most_the_per_call_cap(self):
+        done, calls = self.run_cases([{**self.quiet, "prompt": "noresult"}], "--trials", "1")
+        self.assertEqual(calls[0]["argv"][calls[0]["argv"].index("--max-budget-usd") + 1], f"{r.CALL_MAX_USD:.6f}")
+        self.assertAlmostEqual(r.spent_so_far(self.evals / "RESULTS.md"), r.CALL_MAX_USD)
+
+    def test_no_ledger_no_run(self):
+        (self.evals / "RESULTS.md").unlink()
+        done, calls = self.run_cases([self.quiet], "--trials", "1")
+        self.assertNotEqual(done.returncode, 0)
+        self.assertEqual(calls, [])
+
+    def test_a_call_with_no_known_cost_is_charged_its_budget(self):
+        case = {**self.quiet, "prompt": "noresult"}
+        done, calls = self.run_cases([case], "--trials", "1", "--ceiling-usd", "1")
+        self.assertEqual(done.returncode, 1)
+        self.assertAlmostEqual(r.spent_so_far(self.evals / "RESULTS.md"), 1.0)
+
+    def test_sigterm_still_writes_the_ledger(self):
+        (self.evals / "cases.jsonl").write_text(json.dumps({**self.quiet, "prompt": "sleep 30"}) + "\n")
+        runner = subprocess.Popen([sys.executable, "-I", str(ROOT / "evals" / "run_evals.py"), "--cases",
+                                   str(self.evals / "cases.jsonl"), "--trials", "1", "--ceiling-usd", "1"],
+                                  env=self.env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        for _ in range(200):
+            if self.calls.exists():
+                break
+            time.sleep(0.05)
+        runner.send_signal(signal.SIGTERM)
+        runner.communicate(timeout=30)
+        self.assertNotEqual(runner.returncode, 0)
+        text = (self.evals / "RESULTS.md").read_text()
+        self.assertIn("interrupted", text)
+        self.assertAlmostEqual(r.spent_so_far(self.evals / "RESULTS.md"), 1.0, msg="the call in flight is charged")
+
+    def test_a_ceiling_above_the_cap_is_refused(self):
         case = {"id": "x", "fixture": "minimal", "prompt": "hi", "passes": "p",
                 "pass_checks": [{"check": "changed", "path": "*", "not": True}]}
-        done, calls = self.run_cases([case], "--ceiling-usd", "5.01")
+        done, calls = self.run_cases([case], "--ceiling-usd", f"{r.MAX_CEILING_USD + 0.01}")
         self.assertNotEqual(done.returncode, 0)
         self.assertEqual(calls, [])
 

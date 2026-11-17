@@ -18,6 +18,7 @@ import math
 import os
 import re
 import shutil
+import signal
 import subprocess
 import sys
 import tempfile
@@ -29,7 +30,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import judge  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
-MAX_CEILING_USD = 5.0  # Aakash, 2026-11-16 (PLAN.md Q2): at most 5 USD per run
+MAX_CEILING_USD = 10.0  # Aakash (PLAN.md Q2), 2026-11-17: 10 USD in total for all paid runs, for the full M2
+MIN_START_USD = 0.10  # a run's first call has no dearest call to go by, so less than this left starts nothing
+# shortcut: one call's budget, and its charge until its cost is known. No call seen so far came near it; a grilling
+# turn that needs more is cut short and stops the run. Raise it with Aakash if that happens.
+CALL_MAX_USD = 1.0
 CALL_TIMEOUT_S = 600
 TEXT_CAP = 100_000  # a file up to this many bytes is kept as text in a snapshot
 TOKEN = "CLAUDE_CODE_OAUTH_TOKEN"
@@ -40,17 +45,39 @@ PASS_ENV = ("PATH", "LANG", "LC_ALL", "LC_CTYPE", "TERM", "TMPDIR", "USER", "LOG
 CHECK_FIELDS = {"changed": ("path",), "contains": ("path", "pattern"), "tool": ("name",),
                 "writes_only": ("allowed", "before_turn"), "judge": ("condition",)}
 FIXTURE_NAME = re.compile(r"^[a-z0-9][a-z0-9-]*$")
+CASE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")  # it goes into file names and a ledger row
 EDIT_TOOLS = ("Edit", "Write", "MultiEdit", "NotebookEdit")
 # Tools a trial gets that act outside its folder: the cloud, schedules, other sessions on this machine
 REACHES_OUT = ("RemoteTrigger", "CronCreate", "CronDelete", "ScheduleWakeup", "Workflow", "SendMessage", "ListAgents")
 RESULTS_HEAD = """# Eval results
 
-One line per run of `evals/run_evals.py`. Cost is Claude Code's own estimate (`total_cost_usd`) in US dollars;
-on a claude.ai plan it is plan usage, not a bill.
+One line per paid run: every run of `evals/run_evals.py`, and any other paid check. The Cost column is the ledger for
+the total cap in PLAN.md Q2. The runner gives a run at most what is left and starts none below 0.10 USD; a call can
+still pass the cap by part of itself (docs/adr/0003 R4). A row added by hand needs all 7 cells and a cost written like
+$0.1234, or nothing runs. Cost is Claude Code's own estimate (`total_cost_usd`) in US dollars; on a claude.ai plan it
+is plan usage, not a bill.
 
 | Date | Claude Code | Model | Cases | Trials | Cost | Outcome |
 | --- | --- | --- | --- | --- | --- | --- |
 """
+
+
+def spent_so_far(results):
+    """The sum of the Cost column of RESULTS.md, the ledger the total cap is held against. A missing file or a row
+    that does not parse raises, so nothing runs, rather than count as nothing.
+    shortcut: the ledger is the RESULTS.md next to --cases in this checkout; a --cases file elsewhere, rows on an
+    unmerged branch or a discarded working copy, two runs at once, and a run killed with SIGKILL all escape it.
+    Upgrade to a ledger outside git if that ever happens."""
+    total = 0.0
+    for number, line in enumerate(results.read_text(encoding="utf-8").splitlines(), 1):
+        line = line.strip()
+        if "|" not in line or line.startswith(("| Date |", "| --- |")):
+            continue  # the head's prose holds no |, so any other line with one is a row
+        cells = [cell.strip() for cell in line.strip("|").split("|")]
+        if len(cells) != 7 or not re.fullmatch(r"\$\d+(\.\d+)?", cells[5]):
+            raise ValueError(f"{results}:{number}: a ledger row needs 7 cells and a cost written like $0.1234")
+        total += float(cells[5][1:])
+    return total
 
 
 class Stop(Exception):
@@ -100,6 +127,8 @@ def case_errors(case, fixtures):
                if not isinstance(case.get(key, []), list)]
     if errors:
         return errors
+    if not CASE_ID.fullmatch(case["id"]):
+        errors.append("id may hold only letters, digits, . _ and -")
     if not FIXTURE_NAME.match(case["fixture"]) or not (fixtures / case["fixture"]).is_dir():
         errors.append(f"no fixture folder {fixtures / case['fixture']}")
     if not case.get("pass_checks"):
@@ -299,8 +328,10 @@ class Run:
         # itself. Upgrade to a per-case estimate if RESULTS.md shows a run above its ceiling.
         if remaining <= 0 or remaining < self.dearest:
             raise self.ceiling()
+        budget = min(remaining, CALL_MAX_USD)
+        self.spent += budget  # charged its budget until its cost is known: a timeout, a crash, a signal
         command = ["claude", "-p", "--verbose", "--output-format", "stream-json", "--strict-mcp-config",
-                   "--max-budget-usd", f"{remaining:.6f}", "--session-id" if prior is None else "--resume", session, *extra]
+                   "--max-budget-usd", f"{budget:.6f}", "--session-id" if prior is None else "--resume", session, *extra]
         feed = {"input": prompt} if on_stdin else {"stdin": subprocess.DEVNULL}
         try:
             done = subprocess.run(command if on_stdin else [*command, "--", prompt], cwd=cwd, env=self.env(home),
@@ -322,14 +353,15 @@ class Run:
         # After --resume, total_cost_usd covers the whole session, while --max-budget-usd holds this call alone
         # (docs/adr/0003 R4). A total below the prior one cannot be split, so all of it counts.
         cost = total - prior if prior is not None and total >= prior else total
-        self.spent += cost
+        self.spent += cost - budget
         self.dearest = max(self.dearest, cost)
         self.models.update(e["model"] for e in events if e.get("subtype") == "init" and isinstance(e.get("model"), str))
         turn = {"prompt": prompt, "result": as_text(result.get("result", "")), "tools": tool_calls(events),
                 "cost_usd": cost, "session_cost_usd": total, "events": events}
         if result.get("is_error") or done.returncode:
             turn["error"] = f"claude ended with {result.get('subtype')} (exit {done.returncode})"
-        self.cut = self.cut or "budget" in str(result.get("subtype"))  # --max-budget-usd cut this call short
+        if "budget" in str(result.get("subtype")):  # --max-budget-usd cut this call short
+            self.cut = self.cut or ("per-call cap" if budget < remaining else "ceiling")
         return turn
 
     def git(self, work, home):
@@ -389,6 +421,8 @@ class Run:
             record["error"] = next((t["error"] for t in record["turns"] if t.get("error")), None)
             record["grade"] = grade(case, record, self.ask)
             record["grade"]["judged"] = record.get("judged", [])
+            if self.cut == "per-call cap":
+                raise Stop(f"a call reached the {CALL_MAX_USD:g} USD per-call cap, so the run stops (CALL_MAX_USD)")
             if self.cut:
                 raise self.ceiling()  # a trial cut short does not count
             return record["grade"]
@@ -406,12 +440,11 @@ class Run:
             return False
 
     def finish(self, version, chosen, verdicts, stopped):
-        outcome = f"{sum(verdicts)} of {len(chosen)} cases passed"
-        if stopped:
-            outcome += "; " + stopped.splitlines()[0].replace("|", "/")[:160]
-        models = ", ".join(sorted(self.models)) or "unknown"
-        line = (f"| {datetime.date.today()} | {version} | {models} | {', '.join(c['id'] for c in chosen)} | "
-                f"{self.args.trials} | ${self.spent:.4f} | {outcome} |\n")
+        outcome = f"{sum(verdicts)} of {len(chosen)} cases passed" + (f"; {stopped[:160]}" if stopped else "")
+        cells = [str(datetime.date.today()), version, ", ".join(sorted(self.models)) or "unknown",
+                 ", ".join(c["id"] for c in chosen), str(self.args.trials), f"${self.spent:.4f}", outcome]
+        # One line, seven cells, whatever the CLI or a message printed: a broken row would stop every later run
+        line = "| " + " | ".join(" ".join(cell.replace("|", "/").split()) for cell in cells) + " |\n"
         head = "" if self.results.exists() else RESULTS_HEAD
         with self.results.open("a", encoding="utf-8") as results:
             results.write(head + self.redact(line, str(self.results)))
@@ -432,8 +465,9 @@ def main(argv=None):
     args = parser.parse_args(argv)
     try:
         cases = load_cases(args.cases)
+        spent = spent_so_far(args.cases.parent / "RESULTS.md")
     except (OSError, ValueError) as exc:
-        parser.error(str(exc))
+        parser.error(f"{exc}; nothing runs")
     unknown = sorted(set(args.case or []) - {case["id"] for case in cases})
     if unknown:
         parser.error(f"no such case: {', '.join(unknown)}")
@@ -442,6 +476,11 @@ def main(argv=None):
         parser.error("no cases to run")
     if not 0 < args.ceiling_usd <= MAX_CEILING_USD:
         parser.error(f"--ceiling-usd must be above 0 and at most {MAX_CEILING_USD:g} (PLAN.md Q2)")
+    left = math.floor((MAX_CEILING_USD - spent) * 10_000) / 10_000
+    if left < MIN_START_USD:
+        parser.error(f"${left:.4f} of the {MAX_CEILING_USD:g} USD total for paid runs is left (evals/RESULTS.md, "
+                     "PLAN.md Q2): ask Aakash before any more")
+    args.ceiling_usd = min(args.ceiling_usd, left)
     if args.trials < 1:
         parser.error("--trials must be at least 1")
     token = os.environ.get(TOKEN, "")
@@ -449,6 +488,10 @@ def main(argv=None):
         parser.error(f"{TOKEN} is not set: run `claude setup-token` once in your own terminal and export the "
                      "token (evals/README.md)")
 
+    def interrupted(signum, _frame):  # so a closed terminal or a kill still writes the ledger row
+        raise Stop(f"interrupted by {signal.Signals(signum).name}; the call in flight is charged its budget")
+    for name in ("SIGTERM", "SIGHUP"):
+        signal.signal(getattr(signal, name), interrupted)
     run = Run(args, token)
     home = tempfile.mkdtemp(prefix="diy-eval-version-")  # even this call stays out of the developer's home
     try:
@@ -480,11 +523,12 @@ def main(argv=None):
                 print(stopped)
                 break
     except BaseException as exc:  # Ctrl-C or a crash: RESULTS.md must not read like a finished run
-        stopped = stopped or f"interrupted by {type(exc).__name__}; a call in flight is not counted"
+        stopped = stopped or f"interrupted by {type(exc).__name__}; a call in flight is charged its budget"
         raise
     finally:
         run.finish(version, chosen, verdicts, stopped)  # a crash still records what the run cost
-    print(f"Cost: ${run.spent:.4f} of the ${args.ceiling_usd:.2f} ceiling. Transcripts: {run.folder}")
+    print(f"Cost: ${run.spent:.4f} of the ${args.ceiling_usd:.2f} ceiling; ${left - run.spent:.4f} of the "
+          f"${MAX_CEILING_USD:g} total is left. Transcripts: {run.folder}")
     if run.leaks:
         print(f"TOKEN LEAK: the sign-in token reached {', '.join(sorted(set(run.leaks)))}. It was removed before "
               "saving, but treat it as exposed: run `claude setup-token` again for a new one.", file=sys.stderr)

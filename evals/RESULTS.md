@@ -1,10 +1,16 @@
 # Eval results
 
-One line per run of `evals/run_evals.py`. Cost is Claude Code's own estimate (`total_cost_usd`) in US dollars;
-on a claude.ai plan it is plan usage, not a bill.
+One line per paid run: every run of `evals/run_evals.py`, and any other paid check. The Cost column is the ledger for
+the total cap in PLAN.md Q2. The runner gives a run at most what is left and starts none below 0.10 USD; a call can
+still pass the cap by part of itself (docs/adr/0003 R4). A row added by hand needs all 7 cells and a cost written like
+$0.1234, or nothing runs. Cost is Claude Code's own estimate (`total_cost_usd`) in US dollars; on a claude.ai plan it
+is plan usage, not a bill.
 
 | Date | Claude Code | Model | Cases | Trials | Cost | Outcome |
 | --- | --- | --- | --- | --- | --- | --- |
+| 2026-11-16 | 2.1.325 (Claude Code) | unknown | ticket 07 live check, outside the runner | 1 | $0.4100 | reported as $0.41 |
+| 2026-11-16 | 2.1.325 (Claude Code) | unknown | ticket 08 live checks, outside the runner | 3 | $0.5008 | the session's total after its three runs |
+| 2026-11-16 | 2.1.325 (Claude Code) | claude-sonnet-5-5 | ticket 09 probes and control calls, outside the runner | 25 | $1.2000 | upper bound: 2 full probes $0.0707, 19 probes stopped at init at up to $0.045 each, 4 control calls at up to $0.08 each |
 | 2026-11-16 | 2.1.325 (Claude Code) | claude-sonnet-5-5 | smoke-isolation | 1 | $0.0562 | 0 of 1 cases passed |
 | 2026-11-16 | 2.1.325 (Claude Code) | claude-sonnet-5-5 | smoke-two-turn, smoke-env, E4 | 1 | $0.2280 | 1 of 3 cases passed |
 | 2026-11-16 | 2.1.325 (Claude Code) | claude-sonnet-5-5 | smoke-two-turn | 1 | $0.0430 | 0 of 1 cases passed; stopped at the cost ceiling ($0.0430 of $0.01) |
