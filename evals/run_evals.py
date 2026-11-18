@@ -43,7 +43,7 @@ REMOVED = "[CLAUDE_CODE_OAUTH_TOKEN removed]"
 PASS_ENV = ("PATH", "LANG", "LC_ALL", "LC_CTYPE", "TERM", "TMPDIR", "USER", "LOGNAME", "SHELL", "HTTP_PROXY",
             "HTTPS_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "no_proxy", "NODE_EXTRA_CA_CERTS")
 CHECK_FIELDS = {"changed": ("path",), "contains": ("path", "pattern"), "tool": ("name",),
-                "writes_only": ("allowed", "before_turn"), "judge": ("condition",)}
+                "writes_only": ("allowed", "before_turn"), "transcript": ("pattern",), "judge": ("condition",)}
 FIXTURE_NAME = re.compile(r"^[a-z0-9][a-z0-9-]*$")
 CASE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")  # it goes into file names and a ledger row
 EDIT_TOOLS = ("Edit", "Write", "MultiEdit", "NotebookEdit")
@@ -227,6 +227,9 @@ def holds(check, record, ask=None):
     elif kind == "writes_only":
         written = set().union(*(changed(start, turn["snapshot"]) for turn in turns[:check["before_turn"] - 1]))
         result = all(any(fnmatch.fnmatchcase(path, glob) for glob in check["allowed"]) for path in written)
+    elif kind == "transcript":  # the events only: the snapshots hold the fixture's own files
+        result = any(re.search(check["pattern"], json.dumps(turn.get("events", []), ensure_ascii=False))
+                     for turn in turns)
     else:
         result = ask(check["condition"], record)
     return result != bool(check.get("not"))
@@ -405,8 +408,11 @@ class Run:
             # is read-only, because the next --resume would load settings the agent wrote there; lift it for a case
             # that must build settings (an M3 guard) once a probe shows how Claude Code guards them.
             plugin = [] if self.no_plugin else ["--plugin-dir", str(ROOT)]
+            # A skill's own references (a template, a playbook) sit outside the copy, where a read needs a rule
+            # (docs/adr/0003 R9)
+            skills = [] if self.no_plugin else [f"Read(/{ROOT}/skills/**)"]
             extra = [*plugin, "--setting-sources", "project,local", "--permission-prompts", "none",
-                     "--allowedTools", f"Edit(/{work}/**)", *case.get("allow", []),
+                     "--allowedTools", f"Edit(/{work}/**)", *skills, *case.get("allow", []),
                      "--disallowedTools", *REACHES_OUT, f"Edit(/{work}/.claude/**)"]
 
             def send(prompt):
