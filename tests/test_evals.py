@@ -255,6 +255,13 @@ class Cases(unittest.TestCase):
         self.assertIn("E4", cases)
         self.assertTrue((ROOT / "evals" / "fixtures" / cases["E4"]["fixture"] / ".harness" / "STATE.md").is_file())
 
+    def test_the_language_case_is_a_japanese_turn_over_an_english_state(self):
+        case = {case["id"]: case for case in r.load_cases(ROOT / "evals" / "cases.jsonl")}["lang-ja"]
+        self.assertRegex(case["prompt"], "[぀-ヿ]")  # kana: the turn is Japanese
+        state = (ROOT / "evals" / "fixtures" / case["fixture"] / ".harness" / "STATE.md").read_text()
+        self.assertTrue(state.isascii(), "the STATE.md the agent reads is English")
+        self.assertIn("judge", [check["check"] for check in case["pass_checks"]])
+
     def test_bad_cases_are_refused(self):
         tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, tmp, True)
@@ -370,6 +377,13 @@ class Runner(unittest.TestCase):
         self.assertEqual(len(lines), 1)
         self.assertIn("$0.0200", lines[0])
         self.assertIn("fake-model", lines[0])
+
+    def test_no_plugin_drops_the_plugin_and_says_so_in_the_ledger(self):
+        done, calls = self.run_cases([self.quiet], "--trials", "1", "--no-plugin")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertNotIn("--plugin-dir", calls[0]["argv"])
+        self.assertEqual(calls[0]["argv"][calls[0]["argv"].index("--setting-sources") + 1], "project,local")
+        self.assertIn("(no plugin)", (self.evals / "RESULTS.md").read_text().splitlines()[-1])
 
     def test_cost_counts_each_call_once_across_resumed_turns(self):
         case = {"id": "resumed", "fixture": "minimal", "prompt": "cost 0.3", "turns": [{"say": "cost 0.2"}],

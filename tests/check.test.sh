@@ -266,6 +266,19 @@ trim() { awk 'NF && !s { s = NR } { a[NR] = $0 } NF { e = NR } END { for (i = s;
 nofm() { awk 'NR == 1 && $0 == "---" { fm = 1; next } fm && $0 == "---" { fm = 0; next } !fm' "$1"; }
 { trim < core/agreement.md; echo; nofm skills/ponytail/SKILL.md | trim; echo; trim < core/i-have-adhd.md; } |
   cmp -s - AGENTS.md || fail "AGENTS.md is not agreement, then ponytail, then i-have-adhd"
+# Ticket 10: the six rules (document 04 section 2), the precedence in order with the project's own files right after
+# safety (document 03 section 4, PLAN.md Q4), the reply shape (D8) and the language rule (D11)
+for rule in "Equals" "Goal lock" "Earned parts" "Stage gates" "State on disk" "Their files are theirs"; do
+  grep -q "^- \*\*$rule\.\*\*" AGENTS.md || fail "AGENTS.md lacks the rule: $rule"
+done
+grep -A 5 '^1\. .*system prompt' AGENTS.md | tr '\n' '|' |
+  grep -Eq "^1\. [^|]*system prompt[^|]*\|2\. Safety[^|]*\|3\. [^|]*project's own[^|]*\|4\. [^|]*working agreement[^|]*\|5\. Ponytail[^|]*\|6\. i-have-adhd" ||
+  fail "AGENTS.md lacks the precedence list in order"
+grep -q '^\*\*Reply shape\.\*\* .*next action first.*skipped.*last' AGENTS.md || fail "AGENTS.md lacks the reply-shape rule (D8)"
+grep -q "^\*\*Language\.\*\* .*user's language" AGENTS.md || fail "AGENTS.md lacks the language rule (D11)"
+grep -A 8 '^## Always-on cost' README.md | grep -Eq '[0-9][0-9,]* input tokens' || fail "README.md does not record the always-on cost"
+[ "$(tail -n +"$(grep -n '^## ' README.md | tail -n 1 | cut -d: -f1)" README.md | head -n 1)" = "## Always-on cost" ] ||
+  fail "Always-on cost is not the last section of README.md"
 
 # The always-on hook (ticket 07): one run per rule set, a header line, then exactly that part
 grep -q '"hooks"' .claude-plugin/plugin.json && fail ".claude-plugin/plugin.json names a hooks file (PLAN Q8)"

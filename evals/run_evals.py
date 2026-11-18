@@ -289,6 +289,7 @@ class Run:
     def __init__(self, args, token):
         self.args, self.token = args, token
         self.spent, self.dearest, self.models, self.leaks, self.cut = 0.0, 0.0, set(), [], False
+        self.no_plugin = getattr(args, "no_plugin", False)  # a caller's own Namespace may not carry it
         self.fixtures = args.cases.parent / "fixtures"
         self.results = args.cases.parent / "RESULTS.md"
         self.folder = args.cases.parent / "runs" / datetime.datetime.now().strftime("%Y%m%d-%H%M%S-%f")
@@ -403,7 +404,8 @@ class Run:
             # acceptEdits (docs/adr/0003 R5). Anything else that would ask is refused. shortcut: the copy's .claude/
             # is read-only, because the next --resume would load settings the agent wrote there; lift it for a case
             # that must build settings (an M3 guard) once a probe shows how Claude Code guards them.
-            extra = ["--plugin-dir", str(ROOT), "--setting-sources", "project,local", "--permission-prompts", "none",
+            plugin = [] if self.no_plugin else ["--plugin-dir", str(ROOT)]
+            extra = [*plugin, "--setting-sources", "project,local", "--permission-prompts", "none",
                      "--allowedTools", f"Edit(/{work}/**)", *case.get("allow", []),
                      "--disallowedTools", *REACHES_OUT, f"Edit(/{work}/.claude/**)"]
 
@@ -442,7 +444,8 @@ class Run:
     def finish(self, version, chosen, verdicts, stopped):
         outcome = f"{sum(verdicts)} of {len(chosen)} cases passed" + (f"; {stopped[:160]}" if stopped else "")
         cells = [str(datetime.date.today()), version, ", ".join(sorted(self.models)) or "unknown",
-                 ", ".join(c["id"] for c in chosen), str(self.args.trials), f"${self.spent:.4f}", outcome]
+                 ", ".join(c["id"] for c in chosen) + (" (no plugin)" if self.no_plugin else ""),
+                 str(self.args.trials), f"${self.spent:.4f}", outcome]
         # One line, seven cells, whatever the CLI or a message printed: a broken row would stop every later run
         line = "| " + " | ".join(" ".join(cell.replace("|", "/").split()) for cell in cells) + " |\n"
         head = "" if self.results.exists() else RESULTS_HEAD
@@ -462,6 +465,7 @@ def main(argv=None):
     parser.add_argument("--case", action="append", help="run only this case ID; repeatable")
     parser.add_argument("--trials", type=int, default=3)
     parser.add_argument("--ceiling-usd", type=float, default=MAX_CEILING_USD)
+    parser.add_argument("--no-plugin", action="store_true", help="run without this plugin, to measure what it adds")
     args = parser.parse_args(argv)
     try:
         cases = load_cases(args.cases)
