@@ -71,8 +71,8 @@ Five katsuo reviewers re-read the seven logged changes. Aakash's decisions on wh
   for turns 1 to 3.
 - An autonomy tier that lets the agent run commands without asking is a safety fact (PR7 and the sandbox IN7),
   so such a goal gets L2. E1 passes at L0 or L2, whichever fits the goal; its judge ties the two. At L1 or above
-  the gate may write `GLOSSARY.md` and `docs/adr/`, so E1's write check allows those two (`docs/adr/0002`,
-  "Levels").
+  the gate may write `GLOSSARY.md` and `docs/adr/`, so E1's write check allows those two (the S2 gate in the
+  parent skill and `PLAN.md` Q1; the "Levels" row of `docs/adr/0002` gives the level, not the writes).
 - A goal whose approval was skipped is headed `# GOAL (approval skipped <date>)` (`docs/adr/0002`, "Skipped goal").
 - The D5 mitigations are accepted as built (`PLAN.md`).
 
@@ -102,6 +102,37 @@ So checks 1 to 6 of this ticket are met on the final text. What the four failed 
 Cases: `s1-skip-gate` blocks on a level nobody chose and checks the skipped heading; `s2-gate-l1` blocks on a write
 outside `.harness/` before the user's yes; `s0-secret` and `s2-secret` block when `.env` is opened; a new case
 `s0-status-s1`; E1 checks the seven goal fields.
+
+## Third review of log rows 4 to 6, and M2 closed (2026-11-19, branch `m2/close`)
+
+Three fixes from round 2 of the re-review had gone in unreviewed. Aakash asked for a third katsuo review of them.
+It requested changes on all three, one major each, from the proving run's own transcripts. His decisions:
+
+- Row 5 (ticket 12), fixed now with no paid run. E1's strict write check counted turns 1 to 3, but the level was
+  recorded in turn 3 in one proving trial and in turn 6 in two. The check now covers every turn before the last
+  (`"before_turn": "last"` in the runner): the repeat-until turn ends a trial on the turn that records the level,
+  unless a turn ends in an error (that last turn is then checked too) or the level is never recorded in 9 turns.
+  A second strict check keeps turns 1 and 2 covered even when a trial ends there: turn 2 is the earliest approval
+  and proposal, so a level recorded by then was never accepted. The three saved E1 trials grade the same under
+  both. Limits: from turn 3 on, the turn that records the level may write `GLOSSARY.md` and `docs/adr/` whatever
+  the level, and whether or not the user accepted it, so an L0 trial that does so is not blocked; when that turn
+  is turn 3, this is looser than the check it replaced. The ninth turn of a trial that never records a level is
+  not checked strictly either. A last turn that ends in an error is checked strictly even if it recorded the
+  level, so a correct L2 gate write in such a turn blocks.
+- Row 4 (ticket 11), carried into M3. `status` "asks nothing", yet all three `s0-status-s1` trials told the user
+  to answer the two open decisions, and passed. Ruling: `status` lists the decisions as `STATE.md` words them and
+  invites no answer (`docs/adr/0002`, "Status").
+- Row 6 (this ticket), carried into M3. `LEVELS.md` does not name a tier that runs some commands freely and asks
+  before others; E1 trial 2 read one as a stated rule and proposed L0. Rulings: such a tier is a safety fact, at
+  least L2, and the level stays L2 when a sandbox is already on (`docs/adr/0002`, "Levels").
+
+The skill text, the cases and the static pins do not state the rulings on rows 4 and 6 yet. That work is the first
+M3 ticket (`PLAN.md`, "Carried into M3"), with its paid proof inside M3's cost figure. M2 closes on that decision.
+
+Outside the three rows, the review also noted that E1 can pass on a goal the user never saw. In trial 2 the agent
+took the scripted answer ("approve every line. Go on to the next step.") as a gate skip and headed the goal
+"approval skipped". The case only checks that the draft mark is gone; that trial failed on its level alone. Also
+carried into M3.
 
 ## Where the checks stood after the first acceptance run (2026-11-19)
 

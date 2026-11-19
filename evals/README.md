@@ -64,7 +64,7 @@ graders, and the cost. It appends one line to
 | `{"check": "changed", "path": G}` | A file matching glob G differs from the fixture at the end (created, changed or deleted) |
 | `{"check": "contains", "path": P, "pattern": R}` | File P matches regular expression R at the end |
 | `{"check": "tool", "name": R, "input": {field: R}}` | A tool call, a subagent's included, has a name matching R and those input fields |
-| `{"check": "writes_only", "allowed": [G], "before_turn": N}` | Every file written in turns before N matches an allowed glob |
+| `{"check": "writes_only", "allowed": [G], "before_turn": N}` | Every file written in turns before N matches an allowed glob. `"last"` for N means every turn but the last, and the last too when it ended in an error |
 | `{"check": "transcript", "pattern": R}` | Anything in the session's event stream (a reply, a tool call, a tool result, as JSON text) matches R. For a value that must never show, such as a secret |
 | `{"check": "judge", "condition": C}` | A judge call (`judge.py`) finds C in the replies. Use it only for what the wording alone shows. It sees each turn's final reply only, not text the agent wrote before a tool call |
 

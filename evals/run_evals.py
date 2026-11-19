@@ -111,8 +111,8 @@ def check_errors(check):
     if kind == "writes_only":
         if not isinstance(check["allowed"], list) or not all(isinstance(glob, str) for glob in check["allowed"]):
             errors.append("allowed must be a list of globs")
-        if type(check["before_turn"]) is not int or check["before_turn"] < 1:
-            errors.append("before_turn must be a whole number, at least 1")
+        if check["before_turn"] != "last" and (type(check["before_turn"]) is not int or check["before_turn"] < 1):
+            errors.append('before_turn must be a whole number, at least 1, or "last"')
     if not isinstance(check.get("not", False), bool):
         errors.append("not must be true or false")
     return errors
@@ -225,7 +225,12 @@ def holds(check, record, ask=None):
             re.search(pattern, as_text(call["input"].get(field))) for field, pattern in check.get("input", {}).items())
             for turn in turns for call in turn["tools"])
     elif kind == "writes_only":
-        written = set().union(*(changed(start, turn["snapshot"]) for turn in turns[:check["before_turn"] - 1]))
+        # "last": a repeat-until turn ends a trial at no fixed turn number. A last turn that ended in an error
+        # is checked too: nothing says it got as far as the step the last turn is let off for
+        before = check["before_turn"]
+        if before == "last":
+            before = len(turns) + bool(turns and turns[-1].get("error"))
+        written = set().union(*(changed(start, turn["snapshot"]) for turn in turns[:before - 1]))
         result = all(any(fnmatch.fnmatchcase(path, glob) for glob in check["allowed"]) for path in written)
     elif kind == "transcript":  # the events only: the snapshots hold the fixture's own files
         result = any(re.search(check["pattern"], json.dumps(turn.get("events", []), ensure_ascii=False))
