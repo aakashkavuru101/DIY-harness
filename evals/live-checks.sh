@@ -67,8 +67,8 @@ done
 as_dev python3 -I evals/run_evals.py --case smoke-isolation --trials 1 --ceiling-usd 1 || fail "smoke-isolation"
 grep -rl "ZQX-LEAK" "$(latest)" && fail "a developer marker reached the runner's transcript"
 
-# Checks 1, 3, 4, 5 and 7: real Skill and subagent calls graded, two turns, a file written, E4 failing on the stub,
-# and an env run with no token in sight
+# Checks 1, 3, 4, 5 and 7: real Skill and subagent calls graded, two turns, a file written, E4 run end to end
+# (it passes since ticket 11 built the parent), and an env run with no token in sight
 repo_before=$(git status --porcelain -- . ':!evals/RESULTS.md')
 flags_before=$(ls "$HOME/.claude/diy-harness/sessions" 2>/dev/null)
 python3 -I evals/run_evals.py --case smoke-two-turn --case smoke-env --case smoke-skill-subagent --case E4 --trials 1 \
@@ -76,7 +76,7 @@ python3 -I evals/run_evals.py --case smoke-two-turn --case smoke-env --case smok
   > "$dev/out.txt" 2>&1
 code=$?
 cat "$dev/out.txt"
-[ "$code" -eq 1 ] || fail "runner exit $code, want 1 (E4 fails while the parent is a stub)"
+[ "$code" -eq 0 ] || fail "runner exit $code, want 0"
 grep -q '^PASS smoke-two-turn' "$dev/out.txt" || fail "smoke-two-turn did not pass"
 grep -q '^PASS smoke-env' "$dev/out.txt" || fail "smoke-env did not pass"
 grep -q '^PASS smoke-skill-subagent' "$dev/out.txt" || fail "smoke-skill-subagent did not pass"
@@ -93,8 +93,7 @@ if new:
     print("tools not yet reviewed:", ", ".join(new))
 sys.exit(1 if new else 0)
 EOF
-grep -q '^FAIL E4' "$dev/out.txt" || fail "E4 did not fail"
-grep -qE '^  trial 1 (failed|blocked|judge: fail)' "$dev/out.txt" || fail "E4's failing grader is not named"
+grep -q '^PASS E4' "$dev/out.txt" || fail "E4 did not pass"
 grep -q 'TOKEN LEAK' "$dev/out.txt" && fail "the runner found the token in its output"
 # Read from the environment inside python, so the token never shows in a command line (ps)
 python3 -I -c 'import os, pathlib, sys; t = os.environ["CLAUDE_CODE_OAUTH_TOKEN"]

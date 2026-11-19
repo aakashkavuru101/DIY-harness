@@ -1,6 +1,6 @@
 # The parts catalogue
 
-Every part a harness may contain: its ID, the minimum level at which it may be proposed, and the trigger that earns it. A part whose trigger has not fired is not proposed, whatever the level ([LEVELS.md](LEVELS.md)).
+Every part a harness may contain: its ID, the minimum level at which it may be proposed, and the trigger that earns it. A part whose trigger has not fired is not proposed, whatever the level. When a trigger counts as fired is in [LEVELS.md](LEVELS.md), under "Minimal by default".
 
 ## Protocol
 

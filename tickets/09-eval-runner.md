@@ -1,7 +1,7 @@
 # Ticket 09: the eval runner
 
 Status: closed
-Blocked by: none (built as Aakash answered Q2, Q3 and Q9 in `PLAN.md`; he set the Q2 cost cap to 10 USD in total for all paid runs in M2, 2026-11-17)
+Blocked by: none (built as Aakash answered Q2, Q3 and Q9 in `PLAN.md`; he set the Q2 cost cap to 10 USD in total for all paid runs in M2, 2026-11-17; later 39 USD, see `PLAN.md`)
 GOAL lines: M2, DN3, C7 · Decisions: D16 (pending, M6) · Spec: docs/spec/06 sections 4 and 5, 03 section 2
 
 ## What it makes work
@@ -64,3 +64,12 @@ watch it fail.
    for the token's value, and fails loudly if it finds it. A grader unit test covers this with a dummy token. A run
    in which the agent runs `env` shows no token.
 8. `scripts/check.sh` exits 0, and its link and telemetry checks cover the new files.
+
+## As built, and changed since (2026-11-19)
+
+- The cost cap is a total across all runs, kept in `evals/RESULTS.md`, not a ceiling per run; one call gets at most
+  1 USD (`PLAN.md` Q2, `evals/README.md`).
+- The token is set for the eval command only, never exported in a shell profile (`docs/adr/0003` R3).
+- Check 5 was true when the parent was a stub. E4 passes since ticket 11, and `evals/live-checks.sh` expects that.
+- From the M2 re-review: an error message is redacted before it is cut, so no end of the token can reach the
+  ledger; a judge reply that cannot be read fails the trial, also when a block check asked.

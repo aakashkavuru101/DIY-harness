@@ -14,7 +14,7 @@ the milestone listed before building on it.
 | D2 | Question cap during grilling | At most 5 per round, no cap on the total; patch `grilling` | Confirmed | |
 | D3 | Which review | Matt's two-axis `code-review`, Standards axis fed ponytail-review's checklist | Pending | M3 |
 | D4 | How much testing | TDD only at agreed seams for non-trivial logic | Pending | M3 |
-| D5 | Always-on content and cost | One generated file; measure tokens; off switches. Aakash: "keep D5, always ON, but consider the risk and ways to manage and mitigate it". The builder's proposal for that is the D5 table in `PLAN.md`, awaiting his review | Confirmed | |
+| D5 | Always-on content and cost | One generated file; measure tokens; off switches. Aakash: "keep D5, always ON, but consider the risk and ways to manage and mitigate it". The builder's proposal for that is the D5 table in `PLAN.md`; he accepted its nine mitigations as built on 2026-11-19 | Confirmed | |
 | D6 | Name collisions with upstream plugins | Keep upstream names; README says uninstall upstream; `check.sh` warns | Confirmed | |
 | D7 | Ponytail telemetry | Drop band, board, statusline and webhooks entirely | Confirmed | |
 | D8 | Ponytail's closing risk line | Keep it as the last line, after the next action | Confirmed | |

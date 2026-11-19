@@ -41,10 +41,11 @@ S2 decides how much harness the goal needs, records the level and the reason, an
 6. M2 acceptance: E1, E3, E4, E6, E9 and E12 all pass under the Q2 trial rule in one recorded run, and
    `scripts/check.sh` exits 0.
 
-## Where the checks stand now (2026-11-19, second acceptance run)
+## Where the checks stood after the second acceptance run (2026-11-19, the text of PR #18)
 
-Check 6 is met. The last row of `evals/RESULTS.md` is the run, on the tree with the resume change and the judge
-fix: E1, E3, E4, E6, E9 and E12 each pass 3 of 3, with no block.
+Check 6 was met on that text. The run is the row of 2026-11-19 with the six cases E4, E12, E3, E9, E1, E6 and
+"6 of 6 cases passed" in `evals/RESULTS.md`: each passed 3 of 3, with no block. The M2 re-review changed the text
+after it; the section "M2 re-review" below has the run on the final text.
 
 | Check | Case | Result |
 | --- | --- | --- |
@@ -57,8 +58,50 @@ fix: E1, E3, E4, E6, E9 and E12 each pass 3 of 3, with no block.
 
 Also without a run on the final text: `s2-gate-l1` and `s1-skip-gate`. Aakash chose to run the six acceptance
 cases only (0.98 USD of the 32 USD cap is left). On 2026-11-19 he also chose to close the ticket on the evidence
-above for checks 3 and 4, without a new run: the S2 text has not changed since those passes, and E6 runs the same
-path on the final tree.
+above for checks 3 and 4, without a new run. The builder told him then that the S2 text had not changed since those
+passes. That was wrong: `references/LEVELS.md`, which S2 step 4 reads, changed after them. The M2 re-review found
+it, Aakash was told, and he chose to fix and prove: see "M2 re-review" below.
+
+## M2 re-review (2026-11-19, branch `m2/re-review`)
+
+Five katsuo reviewers re-read the seven logged changes. Aakash's decisions on what they found:
+
+- Fix the text findings and prove the cases on the final text; the cap went to 39 USD for that. The proving run
+  covers every `/diy-harness` case except `E1-start`: E1 runs the same first turn and holds the same write check
+  for turns 1 to 3.
+- An autonomy tier that lets the agent run commands without asking is a safety fact (PR7 and the sandbox IN7),
+  so such a goal gets L2. E1 passes at L0 or L2, whichever fits the goal; its judge ties the two. At L1 or above
+  the gate may write `GLOSSARY.md` and `docs/adr/`, so E1's write check allows those two (`docs/adr/0002`,
+  "Levels").
+- A goal whose approval was skipped is headed `# GOAL (approval skipped <date>)` (`docs/adr/0002`, "Skipped goal").
+- The D5 mitigations are accepted as built (`PLAN.md`).
+
+Text changed in the parent skill: one secrets rule for every stage under "Every reply"; `status` lists every open
+decision and calls no skill; a resume does not dispatch the scan again; the "not built yet" reply names its first
+line; an unanswered `git init` question stays under the open decisions; S2 keeps secret files out of tree-wide
+searches and lists servers, hooks and rules by name only; the example stage line no longer equals a fixture.
+
+The proving run on the final text (the row of 2026-11-19 with 16 cases in `evals/RESULTS.md`, 7.32 USD; 0.61 USD
+of the 39 USD cap is left): 16 of 16 cases pass under Q2, with no block.
+
+| Result | Cases |
+| --- | --- |
+| 3 of 3 | E3, E4, E6, E9, E12, `s0-status`, `s0-status-s1`, `s0-fresh`, `s0-no-git`, `s0-secret`, `s2-no-check`, `s2-secret` |
+| 2 of 3 | E1, `s1-skip-gate`, `s2-gate-l1`, `s2-level` |
+
+So checks 1 to 6 of this ticket are met on the final text. What the four failed trials show:
+
+- E1 trial 2: the approved goal let the agent run the script without asking, and the agent proposed L0. The other
+  two trials proposed L2 with the sandbox part, as the "Levels" ruling asks.
+- `s1-skip-gate` trial 1 and `s2-level` trial 3: the audit report became the whole reply, so the skip was not
+  mentioned in one, and the "yes" confirmed the audit, not a level, in the other. S2 step 1 says the report is not
+  the reply; it does not always hold.
+- `s2-gate-l1` trial 2: the agent said `.harness/research/notes.md` did not exist, though it did, and moved no
+  term to `GLOSSARY.md`.
+
+Cases: `s1-skip-gate` blocks on a level nobody chose and checks the skipped heading; `s2-gate-l1` blocks on a write
+outside `.harness/` before the user's yes; `s0-secret` and `s2-secret` block when `.env` is opened; a new case
+`s0-status-s1`; E1 checks the seven goal fields.
 
 ## Where the checks stood after the first acceptance run (2026-11-19)
 
@@ -114,7 +157,7 @@ do 1 and 2; the merge did 3. The second acceptance run, above, is the only paid 
   block check. No transcript of the second acceptance run has one. Fix it test-first before M3's first
   critical case.
 
-## As built (2026-11-19)
+## As built (2026-11-19; superseded in part by "M2 re-review" above: the safety facts and E1's level)
 
 - Ticket 12's one-turn case E1 is now `E1-start`, with its checks unchanged. E1 is the end-to-end case.
 - Two judge conditions were reworded after a failed run, each with Aakash's yes on 2026-11-19 (rule 4):
