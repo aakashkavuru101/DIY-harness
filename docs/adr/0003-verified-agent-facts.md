@@ -37,8 +37,8 @@ ran in one throwaway project whose `.claude/settings.json` set `DIY_HARNESS_OFF`
 | H8 | Hooks see `env` from a project's `.claude/settings.json` | Docs; observed on CLI 2.1.325 | Docs: "A hook process inherits the parent environment", and an `env` block in a settings file "follows the levels above"; they do not say outright that hooks get it. Observed: with `DIY_HARNESS_OFF` set to `adhd` in the project's settings, the main session and the subagent both got "i-have-adhd rules are off (DIY_HARNESS_OFF)". Docs: project settings "can't set some variables, such as `CLAUDE_CONFIG_DIR`" | `tests/check.test.sh` (DIY_HARNESS_OFF) |
 
 Rows R1 to R8 are the facts ticket 09's eval runner relies on. They were observed on 2026-11-16 on CLI 2.1.325, with
-the model `claude-sonnet-5-5` (the setup token's default), in `evals/live-checks.sh` runs and five probes. All
-together they cost about $1.50 in plan usage. The docs quoted are code.claude.com/docs/en/env-vars and
+the model `claude-sonnet-5-5` (the setup token's default), in `evals/live-checks.sh` runs, 21 probes and 4 control calls. All
+together they cost about $2.50 in plan usage (the rows of 2026-11-16 in `evals/RESULTS.md`, from the ticket 09 row on). The docs quoted are code.claude.com/docs/en/env-vars and
 /permissions, read 2026-11-16.
 
 | Item | Fact | Version checked | Result | Enforced by |

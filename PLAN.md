@@ -51,36 +51,37 @@ Tickets that depend on one name it. Aakash answered Q1 to Q9 on 2026-11-16: Q1 t
 the "Builder's recommendation" column says. He set Q2's cost ceiling the same day: "cost is 5 USD max", and made it a
 total on 2026-11-17: "total cap not to exceed 5 USD", then raised it the same day: "i am increasing the cap to 10 USD
 for full M2". On 2026-11-19, with 1.20 USD left before ticket 12's 3-trial run, he raised it to 20 USD, and the same day,
-with 2.24 USD left before ticket 13's 3-trial run and the M2 acceptance run, to 32 USD.
-All paid runs together, the live checks of tickets 07 and 08 included, stay within 32 USD; `evals/RESULTS.md`
+with 2.24 USD left before ticket 13's 3-trial run and the M2 acceptance run, to 32 USD. The M2 re-review then
+found text to fix and cases with no run on the final text; he chose to fix and prove them, which raised it to 39 USD.
+All paid runs together, the live checks of tickets 07 and 08 included, stay within 39 USD; `evals/RESULTS.md`
 is the ledger, and `evals/run_evals.py` gives a run at most what is left. Claude Code checks a budget only after
 each API call, so the runner starts no call unless what is left covers the dearest call so far; a call dearer than all
 before it can still overshoot by part of itself (`docs/adr/0003` R4). Q7 to Q9 came from checking the Claude Code docs for ticket 07; the
-facts go in `docs/adr/0003` with tickets 07 and 09.
+facts are in `docs/adr/0003` (H1 to H8, R1 to R9).
 
 | # | Question | Conflict | Builder's recommendation (accepted) | Blocks |
 | --- | --- | --- | --- | --- |
 | Q1 | What may be written before the goal is approved? | E1 fails on any write before approval (document 06 section 4). Yet S0 creates `STATE.md`; the S1 gate has the user approve `GOAL.md` line by line, which implies the file exists; `domain-modeling` updates `GLOSSARY.md` "right there" and `research` writes a notes file; S2 stores the audit in `.harness/research/`. `GLOSSARY.md`, `docs/adr/` and `.harness/research/` are "from L1" (document 04 section 4), but no level exists before S2. `STATE.md` must fit on one screen and point at files rather than copy them (document 04 section 5), so it cannot hold the notes | (b): writes under `.harness/` are allowed before approval, and E1's "any file" means files outside `.harness/`. The draft `GOAL.md` and research notes live in `.harness/`. `GLOSSARY.md` and `docs/adr/` wait until the goal is approved and S2 picks L1 or above, by a parent instruction to `domain-modeling`; a vendor patch (with a decision ID and a PATCHES row) only if an eval shows the instruction fails. The alternative, (a): hold the draft goal, terms and notes in the conversation and write them all on approval | 11, 12, 13 |
-| Q2 | How many trials per case in M2, what counts as a pass, and what cost ceiling per run? | Document 06 section 5 asks for 3 trials, and warns that all-trials rules belong only on critical cases ("scope absolute rules to what must never happen"). None of the six M2 cases is critical. D16 (trials and budget) is due at M6 | 3 trials per case; a case passes when at least 2 of 3 pass and no trial hits its blocking behaviour; a ceiling per run that Aakash sets. Until then, ask before every paid run (since 2026-11-19: a 32 USD total for M2, see above) | 09 to 13 |
+| Q2 | How many trials per case in M2, what counts as a pass, and what cost ceiling per run? | Document 06 section 5 asks for 3 trials, and warns that all-trials rules belong only on critical cases ("scope absolute rules to what must never happen"). None of the six M2 cases is critical. D16 (trials and budget) is due at M6 | 3 trials per case; a case passes when at least 2 of 3 pass and no trial hits its blocking behaviour; a ceiling per run that Aakash sets. Until then, ask before every paid run (since 2026-11-19: a 39 USD total for M2, see above) | 09 to 13 |
 | Q3 | Build the eval runner in M2? | Document 03 section 2 schedules adapting i-have-adhd's runner for M6; document 06 section 6 needs cases passing in M2 | Yes: a minimal runner in M2 (ticket 09); the rubric, judge scores, baseline and release gate stay in M6 | 09 |
 | Q4 | Where do the project's own steering files rank? | Document 03 section 4 orders system rules, safety, the agreement, ponytail and i-have-adhd, but not the user's own `CLAUDE.md` or `AGENTS.md` | Right after safety, above the agreement: the user's own rules beat DIY-harness's | 10 |
-| Q5 | Three readings of the M2 cases in document 06 section 4 | E4 "continues ticket 03", but S5 arrives in M3. E12 says "any stage, any turn", but the stage is only known once the parent has read `STATE.md`. A repo with no check command (document 04 section 6) has no case | E4 passes when the agent offers to continue ticket 03 and waits (document 04 S0 step 1). E12's turns are `/diy-harness` and then one ordinary turn in the same session. The no-check-command edge gets its own new case in ticket 13, and E1 stays as written. Since 2026-11-19 a resume no longer waits for a confirm: see the "Resume" row of `docs/adr/0002` | 11, 13 |
+| Q5 | Three readings of the M2 cases in document 06 section 4 | E4 "continues ticket 03", but S5 arrives in M3. E12 says "any stage, any turn", but the stage is only known once the parent has read `STATE.md`. A repo with no check command (document 04 section 6) has no case | E4 passes when the agent offers to continue ticket 03 and waits (document 04 S0 step 1). E12's turns are `/diy-harness` and then one ordinary turn in the same session. The no-check-command edge gets its own new case in ticket 13, and E1 stays as written. Since 2026-11-19 a resume no longer waits for a confirm, and E1 passes at L0 or at L2, whichever fits the goal's autonomy line: see the "Resume" and "Levels" rows of `docs/adr/0002` | 11, 13 |
 | Q6 | Accept the agreement as always on everywhere? | The agreement has no off switch (document 05 section 2 names only ponytail and i-have-adhd), and its "equals" rule (give the recommended answer, then wait) changes how the agent works in every project, even one that never ran `/diy-harness` | Accept it as a residual risk for M2, because its goal-lock and stage rules already apply only once `.harness/` exists. Revisit after the M3 real-project trials | 10 |
 | Q7 | How does the layer fit Claude Code's cap of 10,000 characters per hook output? Longer text goes to a file and Claude sees a 2,000-character preview | The layer is already 9,919 characters with the stub agreement; the subagent layer (ponytail and i-have-adhd) is 9,808, which leaves almost no room for a header or growth | One hook run per rule set, each under 10,000 characters; vendored text unchanged; `AGENTS.md` stays the one source. The runs may happen in parallel, so the agreement states the precedence in words (ticket 10). The budget check also enforces 10,000 characters per part | 07, 10 |
 | Q8 | Name `hooks/hooks.json` in `plugin.json`? | Document 05 section 3 asks for it; the Claude Code docs say `hooks/hooks.json` loads automatically and is merged with any hooks file the manifest names, so it may register twice | Leave the entry out, as upstream i-have-adhd does; the manifest check asserts `hooks/hooks.json` exists; ADR 0003 records the doc quote, and ADR 0002 records the deviation from document 05 section 3 | 07 |
-| Q9 | How do isolated eval runs sign in? | A throwaway `CLAUDE_CONFIG_DIR` has no login (Claude Code docs, authentication) | Aakash runs `claude setup-token` once and exports the token as `CLAUDE_CODE_OAUTH_TOKEN` in his shell, outside the repo; it never enters the repo or a transcript | 09 |
+| Q9 | How do isolated eval runs sign in? | A throwaway `CLAUDE_CONFIG_DIR` has no login (Claude Code docs, authentication) | Aakash runs `claude setup-token` once and exports the token as `CLAUDE_CODE_OAUTH_TOKEN` in his shell, outside the repo; it never enters the repo or a transcript. As built: the token is set for the eval command only, never exported in a shell profile, because the variable overrides the normal login in every session (`docs/adr/0003` R3, `evals/README.md`) | 09 |
 
 ### D5: always on, with its risks managed
 
 Aakash on D5 (2026-11-16): "keep D5, always ON, but consider the risk and ways to manage and mitigate it".
-This table is the builder's proposal for that, awaiting his review in the M2 plan PR. Upstream i-have-adhd makes
+This table was the builder's proposal for that. Aakash accepted the nine mitigations as built on 2026-11-19. Upstream i-have-adhd makes
 its own always-on mode opt-in (a flag file); DIY-harness turns it on by default, so the off switches and the
 budget carry more weight here.
 
 | Risk | Mitigation | Ticket |
 | --- | --- | --- |
-| Context cost in every session, in every project | Budget check in `check.sh` (about 4,000 tokens, document 05 section 2); the real count is measured in isolation once the agreement is final and goes in the README; over budget, trim i-have-adhd's examples first and keep every rule | 07, 10 |
-| A broken or stuck hook blocks or slows a session | Every hook (session start and the prompt tracker) never exits non-zero, has a `timeout` in `hooks.json`, and has a fallback timer for stdin that never closes; tests for each. On unreadable input the session-start hook fails open: it prints the full layer | 07, 08 |
+| Context cost in every session, in every project | Budget check in `check.sh` (about 4,000 tokens, document 05 section 2); the real count is measured in isolation once the agreement is final and goes in the README; over budget, trim i-have-adhd's examples first and keep every rule. Measured: 5,479 tokens per request, of which about 3,000 (the three rule sets) are under the budget check and the rest are not broken down | 07, 10 |
+| A broken or stuck hook blocks or slows a session | Every hook (session start and the prompt tracker) never exits non-zero, has a `timeout` in `hooks.json`, and has a fallback timer for stdin that never closes; tests for each. On unreadable input the session-start hook fails open: it prints its rule set | 07, 08 |
 | Hook code runs in every session (supply chain) | No network (check exists); short enough to read. Ticket 07 reads only the plugin's own files, located from its own path. Ticket 08 adds reading `CLAUDE_CONFIG_DIR` and `DIY_HARNESS_OFF` and writing flags under the config folder, with the limits in the "flag files" row | 07, 08 |
 | The layer is lost after `/clear` or compaction | The SessionStart matcher covers startup, resume, clear and compact | 07 |
 | The rules change how the agent works in projects that never ran `/diy-harness` | Per-session off phrases, a persistent off switch per rule set (user-wide or per project), both documented in the README. The agreement stays on: Q6 | 08 |
@@ -96,11 +97,32 @@ budget carry more weight here.
   make it pass (document 04 S5 step 3). Static checks still cover structure.
 - A case that already passes before the change is kept as a regression guard, and the change needs another proof
   that goes red without it. If none exists, the change is not earned (C3): say so and ask Aakash.
-- Running an eval case costs plan usage. All paid runs together stay within 32 USD for M2 (Q2), counted in
+- Running an eval case costs plan usage. All paid runs together stay within 39 USD for M2 (Q2), counted in
   `evals/RESULTS.md`, and each run's cost is reported to Aakash. Work that would pass the total asks him first.
 - Ledger rows are committed with the PR of the work that paid for them, and never removed.
 - Out of M2: stages S3 to S6, Codex, `install.sh`, `sync-upstream.sh`, the baseline condition, rubric scores and
   the release gate (M6), the D3 and D4 patches. If a ticket seems to need one, stop and say so.
+
+### Carried into M3
+
+Work M2 left for later, each with the file that says why:
+
+- Revisit the always-on agreement after the M3 real-project trials (Q6).
+- Break down the always-on cost: 5,479 tokens per request were measured, and about 2,450 of them are outside the
+  budget check (`README.md`, "Always-on cost").
+- E4 returns to document 06's "continues ticket 03" when S5 is built (`docs/adr/0002`, "Resume").
+- `PARTS.md` lacks the "Proved by" column that S3 needs (`tickets/13-s2-assess-and-level.md`).
+- The permission prompt for a skill's own template read in a real install is unchecked until the M4 smoke test
+  (`docs/adr/0003` R9).
+- Not proved by a case yet: "add to them, never overwrite" at the S2 gate, `level` reusing a saved audit, a resume
+  at stage S0, and the first line of the "not built yet" reply (`tickets/13-s2-assess-and-level.md`). Also four
+  sentences added in the M2 re-review: "do not dispatch the scan again" on a resume (1 of 9 resumes did, in the
+  second acceptance run), `research` told the secrets rule, secret files kept out of tree-wide searches, and
+  servers, hooks and rules listed by name only.
+- `evals/run_evals.py`: a ledger row whose first cell is `---` or `Date` is skipped as a header, and a second
+  signal that lands inside `finish()` can lose the run's ledger row. Both were left as they are.
+- The parent `SKILL.md` holds S0 to S2 inline. Move stage detail to `references/` before S3 to S6 double it
+  (document 04's header: the parent stays short).
 
 ## Rules for every ticket
 

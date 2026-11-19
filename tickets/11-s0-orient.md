@@ -41,3 +41,11 @@ nothing. Every reply restates the stage.
    transcript never contains the value.
 7. `scripts/check.sh` exits 0. Check 1 passes for the parent, check 3 allows its self-reference, and checks 4 and 8
    cover the new files.
+
+## As built, and changed since (2026-11-19)
+
+- A resume no longer waits for the user to confirm: the "Resume" row of `docs/adr/0002-housekeeping.md`. So S0
+  step 1 above and check 1 (E4 "offers to continue ticket 03, and waits") read differently now: E4 reports stage
+  S5 and ticket 03, says the stage is not built yet, and starts no work.
+- Check 3 has a second case, `s0-status-s1`: `status` at S1, where a plain `/diy-harness` would start a round.
+- `s0-secret` also blocks when the `.env` file is opened, not only when its value shows.

@@ -10,7 +10,7 @@ is plan usage, not a bill.
 | --- | --- | --- | --- | --- | --- | --- |
 | 2026-11-16 | 2.1.325 (Claude Code) | unknown | ticket 07 live check, outside the runner | 1 | $0.4100 | reported as $0.41 |
 | 2026-11-16 | 2.1.325 (Claude Code) | unknown | ticket 08 live checks, outside the runner | 3 | $0.5008 | the session's total after its three runs |
-| 2026-11-16 | 2.1.325 (Claude Code) | claude-sonnet-5-5 | ticket 09 probes and control calls, outside the runner | 25 | $1.2000 | upper bound: 2 full probes $0.0707, 19 probes stopped at init at up to $0.045 each, 4 control calls at up to $0.08 each |
+| 2026-11-16 | 2.1.325 (Claude Code) | claude-sonnet-5-5 | ticket 09 probes and control calls, outside the runner | 25 | $1.2457 | upper bound: 2 full probes $0.0707, 19 probes stopped at init at up to $0.045 each, 4 control calls at up to $0.08 each (raised from $1.2000 on 2026-11-19: the three bounds sum to $1.2457) |
 | 2026-11-16 | 2.1.325 (Claude Code) | claude-sonnet-5-5 | smoke-isolation | 1 | $0.0562 | 0 of 1 cases passed |
 | 2026-11-16 | 2.1.325 (Claude Code) | claude-sonnet-5-5 | smoke-two-turn, smoke-env, E4 | 1 | $0.2280 | 1 of 3 cases passed |
 | 2026-11-16 | 2.1.325 (Claude Code) | claude-sonnet-5-5 | smoke-two-turn | 1 | $0.0430 | 0 of 1 cases passed; stopped at the cost ceiling ($0.0430 of $0.01) |
@@ -46,3 +46,4 @@ is plan usage, not a bill.
 | 2026-11-19 | 2.1.328 (Claude Code) | claude-sonnet-5-5 | E9, s1-skip-gate, E1, E6, s2-level | 1 | $1.0186 | 3 of 5 cases passed |
 | 2026-11-19 | 2.1.328 (Claude Code) | claude-sonnet-5-5 | E4, E12, E3, E9, E1, E6, s2-level | 3 | $3.7520 | 5 of 7 cases passed |
 | 2026-11-19 | 2.1.328 (Claude Code) | claude-sonnet-5-5 | E4, E12, E3, E9, E1, E6 | 3 | $3.0862 | 6 of 6 cases passed |
+| 2026-11-19 | 2.1.328 (Claude Code) | claude-sonnet-5-5 | E4, E12, s0-status, s0-fresh, s0-no-git, s0-secret, E3, E9, s1-skip-gate, E1, E6, s2-gate-l1, s2-no-check, s2-secret, s2-level, s0-status-s1 | 3 | $7.3230 | 16 of 16 cases passed |

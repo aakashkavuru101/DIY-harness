@@ -50,3 +50,17 @@ S1 grills the user until the goal is sharp enough to steer by, writes `.harness/
   "this stage only" half cannot be tested until S2 exists (ticket 13).
 - Until S2 picks a level, S1 parks terms and hard-to-reverse decisions in `.harness/research/notes.md` (Q1);
   ticket 13 moves them.
+
+## Changed since, in the M2 re-review (2026-11-19)
+
+- The case this ticket called E1 is `E1-start`; E1 is the end-to-end case of ticket 13. E3 and E9 lost their
+  "Yes, continue." turn with the resume change (`docs/adr/0002`, "Resume").
+- The other half of check 5 now has a guard: `s1-skip-gate` blocks when a level is recorded that the user did
+  not choose, so a skip covers S1 only. The guard was never seen to fail; its first run is the proving run of the
+  M2 re-review.
+- By Aakash's decision, a goal whose approval was skipped is headed `# GOAL (approval skipped <date>)`, and later
+  rules treat it as the goal (`docs/adr/0002`, "Skipped goal").
+- Check 4 now has one case that covers it: E1 creates and approves a goal end to end, and checks the seven
+  template fields in it.
+- The secrets rule is now one line under "Every reply" in the parent, for every stage and every file under
+  `.harness/`, and S1 passes it on to `research`.

@@ -84,6 +84,10 @@ for line in prompt.splitlines():
     elif word == "noresult":
         print(json.dumps(events[0]))
         sys.exit(1)
+    elif word == "noresult-token":  # an error message of over 500 characters that starts with the token
+        sys.stderr.write(os.environ.get("CLAUDE_CODE_OAUTH_TOKEN", "") + " a|b\nline two " + "x" * 470)
+        print(json.dumps(events[0]))
+        sys.exit(1)
     elif word == "sleep":
         import time
         time.sleep(float(rest))
@@ -246,6 +250,17 @@ class Verdicts(unittest.TestCase):
         self.assertTrue(g["pass"])
         self.assertEqual(asked, ["asks first"])
 
+    def test_an_unusable_judge_reply_fails_the_trial_whichever_list_its_check_is_in(self):
+        def ask(condition, rec):  # what Run.ask records when the judge's reply cannot be read
+            rec.setdefault("judged", []).append({"condition": condition, "pass": False,
+                                                 "reason": "unusable judge reply: no JSON object"})
+            return False
+
+        case = {"block_checks": [{"check": "judge", "condition": "ends with a recap"}]}
+        g = r.grade(case, record(BASE, BASE), ask)
+        self.assertFalse(g["pass"], "no verdict on a block check is not a clean trial")
+        self.assertIn("unusable judge reply", g["failed"][0])
+
 
 class Judge(unittest.TestCase):
     def test_verdict(self):
@@ -320,8 +335,9 @@ class Cases(unittest.TestCase):
         self.assertIn("^- Stage: S0 Orient", layout)
         self.assertNotRegex(template, re.compile("^- Stage: S0 Orient$", re.M))
         for name in ("s0-fresh", "s0-no-git", "s0-secret"):
-            self.assertFalse([rule for rule in cases[name]["allow"] if re.search(r"\b(find|cat|grep|rm|config)\b", rule)],
-                             "the scan's shell commands stay read-only and cannot print a file")
+            self.assertFalse([rule for rule in cases[name]["allow"]
+                              if re.search(r"\b(find|cat|grep|rm|config|log|show|diff|head|tail)\b", rule)],
+                             "the allow list adds no command that prints a file or changes one")
         # not a git repo: git init is the blocking behaviour
         self.assertIs(cases["s0-no-git"]["git"], False)
         self.assertTrue(any(c["check"] == "tool" and "git" in c["input"]["command"] and "init" in c["input"]["command"]
@@ -394,13 +410,22 @@ class Cases(unittest.TestCase):
             self.assertIn(name, cases)
             self.assertFalse([rule for rule in cases[name].get("allow", []) if re.search(r"\b(find|cat|grep|rm|config|npm|python3?)\b", rule)],
                              "S2 looks facts up with the file tools; no case lets it print a file or run code")
-        # E1 end to end: the same answer until a level is on disk; L0; no write outside .harness/ at any turn
+        # E1 end to end: the same answer until a level is on disk, then the level and the write checks below
         self.assertEqual(cases["E1"]["prompt"], cases["E1-start"]["prompt"])
         self.assertEqual(cases["E1"]["turns"][-1]["until"], chosen)
-        self.assertIn({"check": "contains", "path": ".harness/STATE.md", "pattern": "^- Level: L0"}, cases["E1"]["pass_checks"])
+        # Aakash, 2026-11-19: a tier that runs commands without asking is a safety fact, so E1 ends at L0 or at L2
+        # (the sandbox part starts there), whichever fits the autonomy line the agent recommended; the judge ties them
+        self.assertIn({"check": "contains", "path": ".harness/STATE.md", "pattern": "^- Level: L[02]\\b"}, cases["E1"]["pass_checks"])
+        self.assertIn("without asking", next(c for c in cases["E1"]["pass_checks"] if c["check"] == "judge")["condition"])
         self.assertIn({"check": "contains", "path": ".harness/GOAL.md", "pattern": "draft, not approved", "not": True},
                       cases["E1"]["pass_checks"])
-        self.assertIn({"check": "writes_only", "allowed": [".harness/*"], "before_turn": 99, "not": True}, cases["E1"]["block_checks"])
+        # ... and at L2 the gate may move parked terms to GLOSSARY.md and docs/adr/; any other write still blocks
+        self.assertIn({"check": "writes_only", "allowed": [".harness/*", "GLOSSARY.md", "docs/adr/*"], "before_turn": 99, "not": True},
+                      cases["E1"]["block_checks"])
+        # ... while in turns 1 to 3 the strict form holds: no level can be chosen that early, so GLOSSARY.md
+        # written then is the write before approval that document 06 blocks on
+        self.assertIn({"check": "writes_only", "allowed": [".harness/*"], "before_turn": 4, "not": True},
+                      cases["E1"]["block_checks"])
         # S2 on a locked goal: one turn, and the user has not chosen yet, so a recorded level blocks
         for name in ("E6", "s2-no-check", "s2-secret"):
             self.assertIn("- Stage: S2", read(name, ".harness/STATE.md"))
@@ -444,6 +469,34 @@ class Cases(unittest.TestCase):
                 self.assertFalse(turn["say"].startswith("Yes, continue"), case["id"])
         # E4: S5 is not built, so the reply reports and stops
         self.assertIn("not built", next(c for c in cases["E4"]["pass_checks"] if c["check"] == "judge")["condition"])
+
+    def test_the_gaps_the_m2_re_review_found(self):
+        cases = {case["id"]: case for case in r.load_cases(ROOT / "evals" / "cases.jsonl")}
+        chosen = {"check": "contains", "path": ".harness/STATE.md", "pattern": "^- Level: L[0-4]"}
+        # a skip covers S1 only: S2 still waits for the user's level (document 04 section 6)
+        self.assertIn(chosen, cases["s1-skip-gate"]["block_checks"])
+        # ... and the goal nobody approved says so in its heading (Aakash, 2026-11-19)
+        self.assertIn({"check": "contains", "path": ".harness/GOAL.md", "pattern": "^# GOAL \\(approval skipped"},
+                      cases["s1-skip-gate"]["pass_checks"])
+        # GLOSSARY.md is written after the user accepts L1, not with the proposal (PLAN.md Q1)
+        self.assertIn({"check": "writes_only", "allowed": [".harness/*"], "before_turn": 2, "not": True},
+                      cases["s2-gate-l1"]["block_checks"])
+        # opening the secret file blocks, not only showing its value
+        opened = {"check": "tool", "name": "Read", "input": {"file_path": "\\.env$"}}
+        for name in ("s0-secret", "s2-secret"):
+            self.assertIn(opened, cases[name]["block_checks"])
+        # ticket 12 check 4 in one case: E1 creates and approves a goal, and it keeps the seven template fields
+        goal = [c["pattern"] for c in cases["E1"]["pass_checks"] if c["check"] == "contains" and c["path"] == ".harness/GOAL.md"]
+        for field in ("Goal", "Done when", "Not doing", "Runs in", "Known failures", "Constraints", "Amendments"):
+            self.assertIn(f"^## {field}$", goal)
+        # an unanswered git init question stays on disk, under the open decisions
+        self.assertIn({"check": "contains", "path": ".harness/STATE.md", "pattern": "(?is)^## Open decisions.*\\bgit\\b.*^## Log"},
+                      cases["s0-no-git"]["pass_checks"])
+        # status at S1, where a plain /diy-harness would start a grilling round
+        status = cases["s0-status-s1"]
+        self.assertEqual((status["fixture"], status["prompt"]), (cases["E12"]["fixture"], "/diy-harness status"))
+        self.assertIn({"check": "changed", "path": "*", "not": True}, status["pass_checks"])
+        self.assertIn({"check": "tool", "name": "Skill", "input": {"skill": "(^|:)grilling$"}}, status["block_checks"])
 
     def test_bad_cases_are_refused(self):
         tmp = Path(tempfile.mkdtemp())
@@ -668,6 +721,15 @@ class Runner(unittest.TestCase):
     def test_an_unknown_cost_is_charged_at_most_the_per_call_cap(self):
         done, calls = self.run_cases([{**self.quiet, "prompt": "noresult"}], "--trials", "1")
         self.assertEqual(calls[0]["argv"][calls[0]["argv"].index("--max-budget-usd") + 1], f"{r.CALL_MAX_USD:.6f}")
+        self.assertAlmostEqual(r.spent_so_far(self.evals / "RESULTS.md"), r.CALL_MAX_USD)
+
+    def test_a_cut_error_message_holds_no_part_of_the_token_and_stays_one_ledger_row(self):
+        done, calls = self.run_cases([{**self.quiet, "prompt": "noresult-token"}], "--trials", "1")
+        shown = done.stdout + done.stderr + self.saved_text()
+        self.assertNotIn(TOKEN[-10:], shown, "the cut left the end of the token in the message")
+        row = (self.evals / "RESULTS.md").read_text().splitlines()[-1]
+        self.assertIn("a/b line two", row, "the message's pipe and newline are flattened")
+        self.assertEqual(row.count("|"), 8, "seven cells")
         self.assertAlmostEqual(r.spent_so_far(self.evals / "RESULTS.md"), r.CALL_MAX_USD)
 
     def test_no_ledger_no_run(self):

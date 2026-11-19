@@ -30,7 +30,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import judge  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
-MAX_CEILING_USD = 32.0  # Aakash (PLAN.md Q2), 2026-11-19: 32 USD in total for all paid runs, for the full M2
+MAX_CEILING_USD = 39.0  # Aakash (PLAN.md Q2), 2026-11-19: 39 USD in total for all paid runs, for the full M2
 MIN_START_USD = 0.10  # a run's first call has no dearest call to go by, so less than this left starts nothing
 # shortcut: one call's budget, and its charge until its cost is known. No call seen so far came near it; a grilling
 # turn that needs more is cut short and stops the run. Raise it with Aakash if that happens.
@@ -258,6 +258,8 @@ def grade(case, record, ask):
     blocked = named(c for c in case.get("block_checks", []) if holds(c, record, ask))
     if not failed and not blocked:
         failed = named(c for c in passes if c["check"] == "judge" and not holds(c, record, ask))
+    # No verdict is not "not blocked": a judge reply nobody could read fails the trial, whichever list asked
+    failed += sorted({j["reason"] for j in record.get("judged", []) if j["reason"].startswith("unusable judge reply")})
     return {"pass": not failed and not blocked, "failed": failed, "blocked": blocked}
 
 
@@ -352,7 +354,8 @@ class Run:
         result = next((event for event in reversed(events) if event.get("type") == "result"), {})
         total = result.get("total_cost_usd")
         if isinstance(total, bool) or not isinstance(total, (int, float)) or not math.isfinite(total) or total < 0:
-            detail = self.redact(done.stderr.strip()[-500:] or done.stdout.strip()[-500:])
+            # Redact before the cut: a cut through the token would leave an end of it that redact cannot see
+            detail = (self.redact(done.stderr).strip() or self.redact(done.stdout).strip())[-500:]
             raise Stop(f"claude reported no cost (exit {done.returncode}), so the run stops: {detail}")
         # After --resume, total_cost_usd covers the whole session, while --max-budget-usd holds this call alone
         # (docs/adr/0003 R4). A total below the prior one cannot be split, so all of it counts.
@@ -495,8 +498,8 @@ def main(argv=None):
         parser.error("--trials must be at least 1")
     token = os.environ.get(TOKEN, "")
     if not token:
-        parser.error(f"{TOKEN} is not set: run `claude setup-token` once in your own terminal and export the "
-                     "token (evals/README.md)")
+        parser.error(f"{TOKEN} is not set: run `claude setup-token` once in your own terminal, then set the "
+                     "token for this command only (evals/README.md)")
 
     def interrupted(signum, _frame):  # so a closed terminal or a kill still writes the ledger row
         raise Stop(f"interrupted by {signal.Signals(signum).name}; the call in flight is charged its budget")

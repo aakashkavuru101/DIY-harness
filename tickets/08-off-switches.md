@@ -59,3 +59,8 @@ A user can switch ponytail or i-have-adhd off for one session, or for good, eith
 8. With stdin that never closes, the tracker exits 0 within 2 seconds and writes no flag, and `session-start.mjs`
    prints its part within 2 seconds.
 9. `scripts/check.sh` exits 0, including no-network on `hooks/`.
+
+## As built (noted 2026-11-19)
+
+- That the session ID survives `/clear` was checked against the Claude Code docs only, not in a live session
+  (`docs/adr/0003` H6).

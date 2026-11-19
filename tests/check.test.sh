@@ -290,7 +290,8 @@ for form in '| none |' '| `status` |' '| `level` |' '| anything else |'; do
   grep -qF "$form" "$parent" || fail "$parent lacks the invocation form: $form"
 done
 for must in '^## S0 Orient' '\.harness/STATE\.md' 'references/templates/STATE\.md' 'git init' 'fresh context' \
-  'never open' 'context limit' 'restat'; do
+  'never open' 'never open it, and never print or search its contents' 'in the foreground' 'do not improvise' \
+  'context limit' 'restat'; do
   grep -q "$must" "$parent" || fail "$parent lacks: $must"
 done
 for field in "Stage" "Level" "Current ticket" "Next step" "Open decisions" "Log"; do
@@ -359,6 +360,28 @@ for must in 'at most 5 questions' 'carry over to the next round' 'no cap on the 
 done
 grep -qF '| `skills/grilling/SKILL.md` |' vendor/PATCHES.md || fail "vendor/PATCHES.md has no row for the D2 patch"
 grep -q 'Ask the whole frontier in one round' skills/grilling/SKILL.md && fail "skills/grilling/SKILL.md still asks the whole frontier in one round"
+
+# M2 re-review, text fixes (Aakash, 2026-11-19: fix and prove now)
+for must in 'Never open a file that holds or may hold secrets' 'whatever the stage' 'lists every open decision' \
+  'under the open decisions until the user answers' 'do not dispatch the scan again' 'tree-wide search' \
+  'by name only' 'approval skipped' 'Tell it the rule on secrets' 'first line says that this stage is not built yet'; do
+  grep -q "$must" "$parent" || fail "$parent lacks: $must"
+done
+grep -q 'Stage: S5 Build · Ticket: 03' "$parent" && fail "$parent's example reply equals the e4-resume fixture"
+grep -q 'rescan the repo' "$parent" && fail "$parent still says 'rescan the repo', which reads against S2's own lookups"
+# Aakash, 2026-11-19: a tier that lets the agent run commands without asking is a safety fact (IN7, PR7)
+grep -q 'run commands without asking' "$refs/LEVELS.md" || fail "$refs/LEVELS.md does not count a command-running tier as a safety fact"
+grep -q 'Minimal by default' "$refs/PARTS.md" || fail "$refs/PARTS.md does not point at the minimal-by-default rule"
+
+# evals/live-checks.sh (M2 re-review): E4 passes now that the parent is built, and the control call is charged
+# to the ledger before it runs
+live=evals/live-checks.sh
+grep -q "'^PASS E4'" "$live" || fail "$live does not expect E4 to pass"
+grep -qE 'FAIL E4|is a stub' "$live" && fail "$live still expects E4 to fail on the stub"
+charged=$(grep -n '^ledger_row 0.1000' "$live" | head -n 1 | cut -d: -f1)
+called=$(grep -n 'as_dev claude -p' "$live" | head -n 1 | cut -d: -f1)
+[ -n "$charged" ] && [ -n "$called" ] && [ "$charged" -lt "$called" ] ||
+  fail "$live does not charge the control call before running it"
 
 # The always-on hook (ticket 07): one run per rule set, a header line, then exactly that part
 grep -q '"hooks"' .claude-plugin/plugin.json && fail ".claude-plugin/plugin.json names a hooks file (PLAN Q8)"
