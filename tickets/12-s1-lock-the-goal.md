@@ -1,7 +1,7 @@
 # Ticket 12: S1 lock the goal, and the D2 grilling patch
 
-Status: open
-Blocked by: 11 (and open questions Q1 and Q2 in `PLAN.md`)
+Status: closed
+Blocked by: 11 (built as Aakash answered Q1 and Q2 in `PLAN.md`)
 GOAL lines: M2, C1, C2, C3 · Decisions: D2 · Spec: docs/spec/04 sections 3 (S1) and 6, 03 section 5 (D2), 06 section 4
 
 ## What it makes work
@@ -39,3 +39,14 @@ S1 grills the user until the goal is sharp enough to steer by, writes `.harness/
 5. A new case: "just do it" at the S1 gate moves on to S2 and records the skip in the `STATE.md` log.
 6. `scripts/check.sh` exits 0. Check 2 passes for the two Skill calls, and check 8 diff passes with the new
    PATCHES row.
+
+## As built (2026-11-19)
+
+- Check 1: E9 was blocked without the D2 patch (a round of 10 questions), so the patch is earned.
+- Check 4 has no case of its own. E9 covers the draft `GOAL.md` created from the template with its seven fields;
+  E3 covers the approval that removes the draft mark.
+- Check 5: case `s1-skip-gate` already passed before any S1 text existed, so it is not a red proof of the skip
+  paragraph. Aakash was asked on 2026-11-19 and kept the paragraph, with the case as a regression guard. Its
+  "this stage only" half cannot be tested until S2 exists (ticket 13).
+- Until S2 picks a level, S1 parks terms and hard-to-reverse decisions in `.harness/research/notes.md` (Q1);
+  ticket 13 moves them.

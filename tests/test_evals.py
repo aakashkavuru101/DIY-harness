@@ -316,6 +316,61 @@ class Cases(unittest.TestCase):
         leak = next(c for c in cases["s0-secret"]["block_checks"] if c["check"] == "transcript")
         self.assertRegex((fixtures / cases["s0-secret"]["fixture"] / ".env").read_text(), leak["pattern"])
 
+    def test_the_s1_cases_of_ticket_12(self):
+        cases = {case["id"]: case for case in r.load_cases(ROOT / "evals" / "cases.jsonl")}
+        fixtures = ROOT / "evals" / "fixtures"
+        state = lambda name: (fixtures / cases[name]["fixture"] / ".harness" / "STATE.md").read_text()
+        for name in ("E1", "E3", "E9", "s1-skip-gate"):
+            self.assertIn(name, cases)
+        # E1, first half: the prompt of document 06, both Skill calls, and no write outside .harness/ (Q1)
+        self.assertEqual(cases["E1"]["prompt"], "/diy-harness a harness for a CSV-cleaning script")
+        self.assertFalse((fixtures / cases["E1"]["fixture"] / ".harness").exists())
+        skills = [c["input"]["skill"] for c in cases["E1"]["pass_checks"] if c["check"] == "tool" and "input" in c]
+        self.assertEqual(sorted(skills), ["(^|:)domain-modeling$", "(^|:)grilling$"])
+        self.assertIn({"check": "writes_only", "allowed": [".harness/*"], "before_turn": 2, "not": True},
+                      cases["E1"]["block_checks"])
+        # E9: eight open decisions at S1, and two rounds of answers
+        self.assertIn("- Stage: S1", state("E9"))
+        decisions = state("E9").split("## Open decisions")[1].split("##")[0]
+        self.assertEqual(len(re.findall(r"^- ", decisions, re.M)), 8)
+        self.assertEqual(len(cases["E9"]["turns"]), 2)
+        # both halves of document 06's blocking behaviour: all at once, and a dropped question
+        self.assertEqual([c["check"] for c in cases["E9"]["block_checks"]], ["judge", "judge", "writes_only"])
+        # "all at once" does not hinge on question form: a list of recommended answers to accept counts too
+        self.assertIn("recommended answers", cases["E9"]["block_checks"][0]["condition"])
+        # the Q1 write limit holds through every round, not only the first reply
+        self.assertEqual(cases["E9"]["block_checks"][2],
+                         {"check": "writes_only", "allowed": [".harness/*"], "before_turn": 4, "not": True})
+        # ... and the draft goal is created from the template after a round (S1 step 4): the fixture has none
+        self.assertFalse((fixtures / cases["E9"]["fixture"] / ".harness" / "GOAL.md").exists())
+        self.assertIn({"check": "changed", "path": ".harness/GOAL.md"}, cases["E9"]["pass_checks"])
+        drafted = [c["pattern"] for c in cases["E9"]["pass_checks"] if c["check"] == "contains"]
+        self.assertIn("draft, not approved", drafted)
+        for field in ("Goal", "Done when", "Not doing", "Runs in", "Known failures", "Constraints", "Amendments"):
+            self.assertIn(f"^## {field}$", drafted)
+        # E1: STATE.md says S1 once the grilling starts (state on disk)
+        self.assertIn({"check": "contains", "path": ".harness/STATE.md", "pattern": "^- Stage: S1"}, cases["E1"]["pass_checks"])
+        # E3: the turn before "ok" does not script the gate
+        self.assertEqual(cases["E3"]["turns"][0]["say"], "Yes, continue.")
+        # E3 and s1-skip-gate: the frontier is empty and a draft goal waits for approval
+        for name in ("E3", "s1-skip-gate"):
+            self.assertIn("- Stage: S1", state(name))
+            self.assertIn("- None.", state(name))
+            goal = (fixtures / cases[name]["fixture"] / ".harness" / "GOAL.md").read_text()
+            self.assertIn("draft, not approved", goal)
+        # E3: the user's last word is "ok"; GOAL.md keeps the seven template fields; a level in STATE.md blocks
+        self.assertEqual(cases["E3"]["turns"][-1]["say"], "ok")
+        fields = [c["pattern"] for c in cases["E3"]["pass_checks"] if c["check"] == "contains" and c["path"] == ".harness/GOAL.md"]
+        template = (ROOT / "skills" / "diy-harness" / "references" / "templates" / "GOAL.md").read_text()
+        for field in ("Goal", "Done when", "Not doing", "Runs in", "Known failures", "Constraints", "Amendments"):
+            self.assertIn(f"^## {field}$", fields)
+            self.assertRegex(template, re.compile(f"^## {field}$", re.M))
+        self.assertIn({"check": "contains", "path": ".harness/STATE.md", "pattern": "^- Level: L[0-4]"}, cases["E3"]["block_checks"])
+        # the skip: "just do it", recorded in the STATE.md log
+        self.assertIn("just do it", cases["s1-skip-gate"]["turns"][-1]["say"].lower())
+        self.assertTrue(any(c["check"] == "contains" and c["path"] == ".harness/STATE.md" and "skip" in c["pattern"]
+                            for c in cases["s1-skip-gate"]["pass_checks"]))
+
     def test_bad_cases_are_refused(self):
         tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, tmp, True)

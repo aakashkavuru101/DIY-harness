@@ -303,6 +303,17 @@ done
 for f in "$tpl/STATE.md" "$tpl/GOAL.md"; do
   [ -f "$f" ] && [ "$(wc -l < "$f")" -le 40 ] || fail "$f is missing or longer than one screen (40 lines)"
 done
+# Ticket 12: the parent holds S1 (two Skill calls, the nine topics, the Q1 write limit, the gate and its skip)
+grep -q 'Skill tool twice, for `grilling` and `domain-modeling`' "$parent" || fail "$parent S1 does not call grilling and domain-modeling"
+for must in '^## S1 Lock the goal' 'Skill tool with `research`' 'references/templates/GOAL\.md' 'who runs it' \
+  'one sentence' 'done criteria' 'non-goals' 'which agents' 'observed failures' 'constraints' 'must never happen' \
+  'autonomy tier' 'only under `\.harness/`' 'GLOSSARY\.md' 'docs/adr/' 'line by line' 'just do it' 'this stage only'; do
+  grep -qi "$must" "$parent" || fail "$parent lacks: $must"
+done
+grep -q 'S1 is not built yet' "$parent" && fail "$parent still says S1 is not built"
+for must in 'set the stage in `STATE\.md` to `S1 Lock the goal`' 'every file under `\.harness/`' 'approves the lines as shown' 'never answers an open decision'; do
+  grep -q "$must" "$parent" || fail "$parent lacks: $must"
+done
 
 # The always-on hook (ticket 07): one run per rule set, a header line, then exactly that part
 grep -q '"hooks"' .claude-plugin/plugin.json && fail ".claude-plugin/plugin.json names a hooks file (PLAN Q8)"

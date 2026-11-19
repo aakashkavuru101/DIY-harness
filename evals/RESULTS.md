@@ -32,3 +32,10 @@ is plan usage, not a bill.
 | 2026-11-18 | 2.1.327 (Claude Code) | claude-sonnet-5-5 | s0-fresh, s0-no-git, s0-secret | 1 | $0.3888 | 2 of 3 cases passed |
 | 2026-11-18 | 2.1.327 (Claude Code) | claude-sonnet-5-5 | s0-fresh | 1 | $0.1187 | 1 of 1 cases passed |
 | 2026-11-18 | 2.1.327 (Claude Code) | claude-sonnet-5-5 | E4, E12, s0-status, s0-fresh, s0-no-git, s0-secret | 3 | $1.8679 | 6 of 6 cases passed |
+| 2026-11-19 | 2.1.327 (Claude Code) | claude-sonnet-5-5 | E1, E3, E9, s1-skip-gate | 1 | $0.5123 | 1 of 4 cases passed |
+| 2026-11-19 | 2.1.327 (Claude Code) | claude-sonnet-5-5 | E1, E3, E9, s1-skip-gate | 1 | $0.5224 | 2 of 4 cases passed |
+| 2026-11-19 | 2.1.327 (Claude Code) | claude-sonnet-5-5 | E3, E9 | 1 | $0.2452 | 1 of 2 cases passed |
+| 2026-11-19 | 2.1.327 (Claude Code) | claude-sonnet-5-5 | E3, s1-skip-gate | 1 | $0.2171 | 2 of 2 cases passed |
+| 2026-11-19 | 2.1.328 (Claude Code) | claude-sonnet-5-5 | E4, E12, s0-status, E1, E3, E9, s1-skip-gate | 3 | $2.5422 | 6 of 7 cases passed |
+| 2026-11-19 | 2.1.328 (Claude Code) | claude-sonnet-5-5 | E4, E12, s0-status, E3, E9, s1-skip-gate | 3 | $2.0634 | 6 of 6 cases passed |
+| 2026-11-19 | 2.1.328 (Claude Code) | claude-sonnet-5-5 | E4, E12, s0-status, E1, E3, E9, s1-skip-gate | 3 | $2.4170 | 7 of 7 cases passed |
