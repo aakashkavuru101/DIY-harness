@@ -39,3 +39,9 @@ is plan usage, not a bill.
 | 2026-11-19 | 2.1.328 (Claude Code) | claude-sonnet-5-5 | E4, E12, s0-status, E1, E3, E9, s1-skip-gate | 3 | $2.5422 | 6 of 7 cases passed |
 | 2026-11-19 | 2.1.328 (Claude Code) | claude-sonnet-5-5 | E4, E12, s0-status, E3, E9, s1-skip-gate | 3 | $2.0634 | 6 of 6 cases passed |
 | 2026-11-19 | 2.1.328 (Claude Code) | claude-sonnet-5-5 | E4, E12, s0-status, E1, E3, E9, s1-skip-gate | 3 | $2.4170 | 7 of 7 cases passed |
+| 2026-11-19 | 2.1.328 (Claude Code) | claude-sonnet-5-5 | E1, E6, s2-no-check, s2-secret, s2-level | 1 | $0.6526 | 0 of 5 cases passed |
+| 2026-11-19 | 2.1.328 (Claude Code) | claude-sonnet-5-5 | E1, E6, s2-no-check, s2-secret, s2-level | 1 | $0.9930 | 4 of 5 cases passed |
+| 2026-11-19 | 2.1.328 (Claude Code) | claude-sonnet-5-5 | E1 | 1 | $0.2931 | 1 of 1 cases passed |
+| 2026-11-19 | 2.1.328 (Claude Code) | claude-sonnet-5-5 | E4, E12, E3, E9, s1-skip-gate, E1, E6, s2-gate-l1, s2-no-check, s2-secret, s2-level | 3 | $5.4084 | 6 of 11 cases passed |
+| 2026-11-19 | 2.1.328 (Claude Code) | claude-sonnet-5-5 | E9, s1-skip-gate, E1, E6, s2-level | 1 | $1.0186 | 3 of 5 cases passed |
+| 2026-11-19 | 2.1.328 (Claude Code) | claude-sonnet-5-5 | E4, E12, E3, E9, E1, E6, s2-level | 3 | $3.7520 | 5 of 7 cases passed |
