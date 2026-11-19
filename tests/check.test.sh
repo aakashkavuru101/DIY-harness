@@ -311,8 +311,16 @@ for must in '^## S1 Lock the goal' 'Skill tool with `research`' 'references/temp
   grep -qi "$must" "$parent" || fail "$parent lacks: $must"
 done
 grep -q 'S1 is not built yet' "$parent" && fail "$parent still says S1 is not built"
-for must in 'set the stage in `STATE\.md` to `S1 Lock the goal`' 'every file under `\.harness/`' 'approves the lines as shown' 'never answers an open decision'; do
+for must in 'set the stage in `STATE\.md` to `S1 Lock the goal`' 'every file under `\.harness/`' 'approves the lines as shown'; do
   grep -q "$must" "$parent" || fail "$parent lacks: $must"
+done
+# Aakash, 2026-11-19 (docs/adr/0002, "Resume"): a resume carries on in the same reply, with no confirm turn
+for must in 'resume in the same reply' 'Do not ask whether to continue' 'S3 to S6' 'this stage is not built yet' \
+  'Do not narrate'; do
+  grep -q "$must" "$parent" || fail "$parent lacks: $must"
+done
+for old in 'asks whether to continue at the next step' 'wait for the user to confirm'; do
+  grep -q "$old" "$parent" && fail "$parent still has the resume confirm turn: $old"
 done
 # Ticket 13: the parent holds S2 and the `level` form; LEVELS.md and PARTS.md carry document 02 sections 3 and 4
 refs=skills/diy-harness/references
