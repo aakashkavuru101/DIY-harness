@@ -51,7 +51,7 @@ The ticket stays open: check 6 is not met. The last row of `evals/RESULTS.md` is
 | 2 | E1 | 3 of 3 |
 | 3 | `s2-no-check` | 3 of 3, in the run before, on text older than the final |
 | 4 | `s2-secret` | 3 of 3, in the run before, on text older than the final; no trial opened `.env` |
-| 5 | `s2-level` | 2 of 3; one trial reused its own reasoning and skipped the audit |
+| 5 | `s2-level` | 2 of 3; one trial made no audit call (its transcript was not read) |
 | 6 | M2 acceptance | Not met: E1, E4, E6 and E9 pass 3 of 3; E3 is 1 of 3 with one block; E12 is 0 of 3 with one block |
 
 What the failed trials show:
