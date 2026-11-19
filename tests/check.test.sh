@@ -314,6 +314,37 @@ grep -q 'S1 is not built yet' "$parent" && fail "$parent still says S1 is not bu
 for must in 'set the stage in `STATE\.md` to `S1 Lock the goal`' 'every file under `\.harness/`' 'approves the lines as shown' 'never answers an open decision'; do
   grep -q "$must" "$parent" || fail "$parent lacks: $must"
 done
+# Ticket 13: the parent holds S2 and the `level` form; LEVELS.md and PARTS.md carry document 02 sections 3 and 4
+refs=skills/diy-harness/references
+grep -q 'Skill tool with `ponytail-audit`' "$parent" || fail "$parent S2 does not call ponytail-audit"
+for must in '^## S2 Assess and choose a level' 'references/LEVELS\.md' 'references/PARTS\.md' '\.harness/research/audit-' \
+  'deny rules' 'sandbox' 'MCP servers' 'never ask the user' 'cheapest real check' 'first ticket' 'ponytail ladder' \
+  'one line per part' '"yes" accepts' 'with the reason' 'leave `\.harness/GOAL\.md` unchanged' \
+  'at L1 or above, move the terms' 'add to them, never overwrite' 'never open such a file' \
+  'newest `\.harness/research/audit-'; do
+  grep -qi "$must" "$parent" || fail "$parent lacks: $must"
+done
+grep -q 'Not built yet (ticket 13)' "$parent" && fail "$parent still says S2 is not built"
+# C5, minimal by default: the lowest level that meets the goal
+grep -qi 'lowest level that meets the goal' "$parent" || fail "$parent S2 does not propose the lowest level that meets the goal"
+grep -qi 'minimal by default' "$refs/LEVELS.md" 2>/dev/null || fail "$refs/LEVELS.md lacks: minimal by default"
+# ... but a safety fact (a secret in reach, threat T3) is a fired trigger without waiting for a leak
+grep -qi 'safety fact.*fired trigger' "$refs/LEVELS.md" 2>/dev/null || fail "$refs/LEVELS.md does not carve safety facts out of minimal by default"
+# Aakash, 2026-11-19: a rule the goal only states (an autonomy tier, a "never" line) stays at L0 until it is broken
+grep -qi 'rule the goal states for the agent.*autonomy tier' "$refs/LEVELS.md" 2>/dev/null || fail "$refs/LEVELS.md does not keep a stated rule at L0"
+# D2 for every reply, not only a grilling round: at most 5 decisions or questions, whatever their form
+grep -q 'at most 5 decisions or questions' "$parent" || fail "$parent does not cap a reply at 5 decisions or questions"
+for level in L0 L1 L2 L3 L4; do
+  grep -q "^| \*\*$level\*\* |" "$refs/LEVELS.md" 2>/dev/null || fail "$refs/LEVELS.md lacks the level: $level"
+done
+grep -qi 'ceiling' "$refs/LEVELS.md" 2>/dev/null || fail "$refs/LEVELS.md does not say a level is a ceiling"
+# every part ID of document 02 section 4 is a row in PARTS.md, with the same minimum level
+sed -n '/^## 4\. The parts catalogue/,/^## 5\./p' docs/spec/02-harness-theory-and-levels.md | grep -E '^\| [A-Z]{2}[0-9]+ \|' |
+  awk -F'|' '{ gsub(/ /, "", $2); gsub(/ /, "", $4); print $2 " " $4 }' > "$tmp/parts.want"
+[ "$(wc -l < "$tmp/parts.want")" -eq 60 ] || fail "expected 60 parts in document 02 section 4, found $(wc -l < "$tmp/parts.want")"
+while read -r id min; do
+  grep -qE "^\| $id \|.*\| $min \|" "$refs/PARTS.md" 2>/dev/null || fail "$refs/PARTS.md lacks part $id at $min"
+done < "$tmp/parts.want"
 # D2: grilling shows at most 5 questions per round, carries the rest over, and has no cap on the total
 for must in 'at most 5 questions' 'carry over to the next round' 'no cap on the total'; do
   grep -q "$must" skills/grilling/SKILL.md || fail "skills/grilling/SKILL.md lacks the D2 patch: $must"

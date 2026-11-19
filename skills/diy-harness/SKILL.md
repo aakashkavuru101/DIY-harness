@@ -25,6 +25,7 @@ From this command on, for the rest of the session:
 2. Make the first line the next action: something the user can do or answer now. No preamble.
 3. Right after it, restate where the work stands on one line, such as `Stage: S5 Build · Ticket: 03`. Leave the ticket out when there is none.
 4. End without a recap or a pleasantry.
+5. Put at most 5 decisions or questions to the user in one reply, whatever their form: questions, a list of recommended answers to accept, a table. Say how many more wait; they come in later replies. The lines of a draft goal shown for approval do not count.
 
 ## What the user typed after the command
 
@@ -32,7 +33,7 @@ From this command on, for the rest of the session:
 | --- | --- |
 | none | Run S0 Orient below. |
 | `status` | Read `.harness/STATE.md` and report the stage, the level, the current ticket and the open decisions. Change nothing: write no file and run no command that changes anything. If the file does not exist, say so and stop. |
-| `level` | The S2 level assessment, run again on the current state. It is not built yet (ticket 13): say so and change nothing. |
+| `level` | Run the S2 level assessment again on the current state: see "Run again" under S2 Assess and choose a level. |
 | anything else | The text says what the harness is for and opens the S1 grilling. If `.harness/STATE.md` exists, run S0 Orient and take the text as input to the stage it names. Otherwise run steps 1 to 3 of S0 Orient, then start S1 Lock the goal in the same reply: the text is the user's choice of stage. |
 
 ## S0 Orient
@@ -44,6 +45,14 @@ Purpose: resume, or start cleanly.
 1. The first line asks whether to continue at the next step that `STATE.md` names. Here, that question is the next action. A yes to it confirms the stage only: it never answers an open decision.
 2. Report the stage, the level, the current ticket and the next step, and how many decisions are open: the number only.
 3. Stop and wait for the user to confirm. Do not start the work, and do not redo an earlier stage. Listing the open decisions or your recommended answers, asking them, or showing a draft for approval is starting the work: it belongs in the reply after the user confirms.
+
+   The whole reply looks like this, plus the line on what was skipped:
+
+   ```
+   Continue S6 with the retro on last week's session? (yes / no)
+   Stage: S6 Run and retro · Level: L1 · Ticket: none · Open decisions: 3
+   Next step: the retro on the session of 12 May.
+   ```
 
 **Otherwise:**
 
@@ -83,13 +92,30 @@ Purpose: a goal sharp enough to steer by.
    - in `STATE.md`, set the stage to `S2 Assess and choose a level`, set the next step, and log the approval;
    - stop, and ask whether to start S2. Do not start S2 in the same reply.
 
-If the user skips the gate ("just do it") with questions still open or lines not approved: take your recommended answers, finish `GOAL.md` the same way, log the skipped S1 gate and what you assumed in `STATE.md`, and move on to S2 without asking again. A skip covers this stage only: S2 gates again.
+If the user skips the gate ("just do it") with questions still open or lines not approved: take your recommended answers, finish `GOAL.md` the same way, log the skipped S1 gate and what you assumed in `STATE.md`, tell the user in one line that the skip is logged, and move on to S2 without asking again. A skip covers this stage only: S2 gates again.
 
 Done when: the frontier is empty and the user has approved `GOAL.md` line by line.
 
 ## S2 Assess and choose a level
 
-Not built yet (ticket 13): say so and stop.
+Purpose: decide how much harness this goal needs.
+
+1. If the repo has code, call the Skill tool with `ponytail-audit` for a ranked baseline. Tell it: name a file that holds or may hold secrets by its path and the kind of secret, and never open it, print it or search its contents. A small repo still gets the audit: it is short when there is little to find. Save the report as `.harness/research/audit-<date>.md`. The report is not the reply: give it at most 3 lines in the reply, and carry on with steps 2 to 6 in the same reply.
+2. List the safety facts, looked up, not asked: secrets in reach (paths and kinds: never open such a file, and never print or search its contents), existing deny rules, hooks, the sandbox state, and installed MCP servers and skills.
+3. Find the check command yourself: read the package manifest's scripts, the Makefile, the CI files and the test folders. Never ask the user what the test or check command is; name the one you found. If the repo has none, propose the cheapest real check the language offers without installing anything, as the first ticket.
+4. Read [LEVELS.md](references/LEVELS.md) and [PARTS.md](references/PARTS.md), in this skill's own folder. Map each goal line and each observed failure to the parts that answer it.
+5. Apply the ponytail ladder to each part: does it need to exist, is it already in the repo, can an existing tool do it? Drop what fails.
+6. Propose the level: the highest minimum level among the parts that remain, which is the lowest level that meets the goal. In doubt between two levels, propose the lower one and name the failure that would earn the next. Give one line per part saying what it answers, at most 5 lines per group, with the check command and the secrets you found. Use the grilling format, so "yes" accepts the level you recommend. Then stop and wait: the level is the user's decision.
+
+The gate. Once the user has chosen a level:
+
+- record it in `STATE.md` with the reason: the level field reads like `- Level: L1, because <the reason in one clause>`, and the log gets a line;
+- at L1 or above, move the terms and decisions parked in `.harness/research/notes.md` to `GLOSSARY.md` and `docs/adr/`, in the formats `domain-modeling` gives. If those files exist, add to them, never overwrite;
+- set the stage to `S3 Design`, then stop. S3 is not built yet: say so.
+
+Done when: the user has chosen a level, and `STATE.md` records it with the reason.
+
+Run again (`level`). Run steps 1 to 6 on the current state, whatever the stage. In step 1, reuse the newest `.harness/research/audit-*.md` when one exists, and run the audit when none does. Leave `.harness/GOAL.md` unchanged. Once the user has chosen, follow the first two points of the gate; the stage stays as it is, unless it is S2. Without an approved `GOAL.md`, say so and stop.
 
 ## When the session nears its context limit
 
