@@ -30,7 +30,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import judge  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
-MAX_CEILING_USD = 10.0  # Aakash (PLAN.md Q2), 2026-11-17: 10 USD in total for all paid runs, for the full M2
+MAX_CEILING_USD = 20.0  # Aakash (PLAN.md Q2), 2026-11-19: 20 USD in total for all paid runs, for the full M2
 MIN_START_USD = 0.10  # a run's first call has no dearest call to go by, so less than this left starts nothing
 # shortcut: one call's budget, and its charge until its cost is known. No call seen so far came near it; a grilling
 # turn that needs more is cut short and stops the run. Raise it with Aakash if that happens.

@@ -20,6 +20,8 @@ S2 decides how much harness the goal needs, records the level and the reason, an
   5. Propose a level, one line per part, in the grilling format.
 - If the repo has no check command, propose the cheapest real check the language offers as the first ticket (QA1,
   document 04 section 6).
+- Once the user has chosen L1 or above, the terms and decisions that S1 parked in `.harness/research/notes.md`
+  (ticket 12, Q1) move to `GLOSSARY.md` and `docs/adr/`.
 - The gate: S2 ends when the user has chosen a level and `STATE.md` records it with the reason.
 - New files get "own files" rows in `vendor/UPSTREAM.md`.
 
