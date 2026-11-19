@@ -279,6 +279,30 @@ grep -q "^\*\*Language\.\*\* .*user's language" AGENTS.md || fail "AGENTS.md lac
 grep -A 8 '^## Always-on cost' README.md | grep -Eq '[0-9][0-9,]* input tokens' || fail "README.md does not record the always-on cost"
 [ "$(tail -n +"$(grep -n '^## ' README.md | tail -n 1 | cut -d: -f1)" README.md | head -n 1)" = "## Always-on cost" ] ||
   fail "Always-on cost is not the last section of README.md"
+# Ticket 11: the parent skill holds the agreement in short, the four invocation forms, S0 and its two edge cases;
+# the two templates carry the fields of document 04 section 5 on one screen each
+parent=skills/diy-harness/SKILL.md tpl=skills/diy-harness/references/templates
+grep -q 'this command does nothing' "$parent" && fail "$parent is still the M1 stub"
+for rule in "Equals" "Goal lock" "Earned parts" "Stage gates" "State on disk" "Their files are theirs"; do
+  grep -q "\*\*$rule\.\*\*" "$parent" || fail "$parent does not restate the rule: $rule"
+done
+for form in '| none |' '| `status` |' '| `level` |' '| anything else |'; do
+  grep -qF "$form" "$parent" || fail "$parent lacks the invocation form: $form"
+done
+for must in '^## S0 Orient' '\.harness/STATE\.md' 'references/templates/STATE\.md' 'git init' 'fresh context' \
+  'never open' 'context limit' 'restat'; do
+  grep -q "$must" "$parent" || fail "$parent lacks: $must"
+done
+for field in "Stage" "Level" "Current ticket" "Next step" "Open decisions" "Log"; do
+  grep -q "$field" "$tpl/STATE.md" 2>/dev/null || fail "$tpl/STATE.md lacks the field: $field"
+done
+grep -qi 'redact.*secrets.*personal data' "$tpl/STATE.md" 2>/dev/null || fail "$tpl/STATE.md does not say to redact secrets and personal data"
+for field in "Goal" "Done when" "Not doing" "Runs in" "Known failures" "Constraints" "Amendments"; do
+  grep -q "$field" "$tpl/GOAL.md" 2>/dev/null || fail "$tpl/GOAL.md lacks the field: $field"
+done
+for f in "$tpl/STATE.md" "$tpl/GOAL.md"; do
+  [ -f "$f" ] && [ "$(wc -l < "$f")" -le 40 ] || fail "$f is missing or longer than one screen (40 lines)"
+done
 
 # The always-on hook (ticket 07): one run per rule set, a header line, then exactly that part
 grep -q '"hooks"' .claude-plugin/plugin.json && fail ".claude-plugin/plugin.json names a hooks file (PLAN Q8)"

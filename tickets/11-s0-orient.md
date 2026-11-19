@@ -1,7 +1,7 @@
 # Ticket 11: S0 orient, invocation forms and templates
 
-Status: open
-Blocked by: 09, 10 (and open questions Q1, Q2 and Q5 in `PLAN.md`)
+Status: closed
+Blocked by: 09, 10 (built as Aakash answered Q1, Q2 and Q5 in `PLAN.md`)
 GOAL lines: M2, G1, C1, C4, C9 · Spec: docs/spec/04 sections 1, 2, 3 (S0), 5 and 6, 06 section 4
 
 ## What it makes work

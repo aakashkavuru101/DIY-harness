@@ -57,7 +57,7 @@ graders, and the cost. It appends one line to
 | `passes`, `blocks` | What passes and what fails the case outright, in words (document 06 section 4) |
 | `pass_checks` | Checks that must all hold for a trial to pass |
 | `block_checks` | Checks that must not hold. One that holds blocks the whole case |
-| `allow` | Permission rules for `--allowedTools`, such as `Bash(env)`. File edits inside the copy are always allowed, except in its `.claude/` |
+| `allow` | Permission rules for `--allowedTools`, such as `Bash(env)`. File edits inside the copy are always allowed, except in its `.claude/`; so is reading this plugin's `skills/` folder |
 
 | Check | Holds when |
 | --- | --- |
@@ -65,6 +65,7 @@ graders, and the cost. It appends one line to
 | `{"check": "contains", "path": P, "pattern": R}` | File P matches regular expression R at the end |
 | `{"check": "tool", "name": R, "input": {field: R}}` | A tool call, a subagent's included, has a name matching R and those input fields |
 | `{"check": "writes_only", "allowed": [G], "before_turn": N}` | Every file written in turns before N matches an allowed glob |
-| `{"check": "judge", "condition": C}` | A judge call (`judge.py`) finds C in the replies. Use it only for what the wording alone shows |
+| `{"check": "transcript", "pattern": R}` | Anything in the session's event stream (a reply, a tool call, a tool result, as JSON text) matches R. For a value that must never show, such as a secret |
+| `{"check": "judge", "condition": C}` | A judge call (`judge.py`) finds C in the replies. Use it only for what the wording alone shows. It sees each turn's final reply only, not text the agent wrote before a tool call |
 
 Any check takes `"not": true` to invert it. In globs, `*` also matches `/`.
