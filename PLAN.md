@@ -1,6 +1,6 @@
 # PLAN
 
-Milestones M1 (done) and M2. Each ticket is closed by changing its `Status:` line, in the same commit as the work.
+Milestones M1 and M2, both done. Each ticket is closed by changing its `Status:` line, in the same commit as the work.
 A ticket is unblocked when every ticket in its "Blocked by" is closed. Build in order.
 
 ## M1: skeleton and vendoring (done)
@@ -23,7 +23,7 @@ M1 is done when every ticket below is closed and `scripts/check.sh` is green on 
 Out of M1: hook scripts, the real parent command, `install.sh`, `sync-upstream.sh`, evals,
 the D2 and D3 patches.
 
-## M2: parent command S0 to S2 in Claude Code
+## M2: parent command S0 to S2 in Claude Code (done)
 
 GOAL lines: M2, G1, C1 to C5, C7, C9, C12. Spec: docs/spec/01 section 5, 03 sections 3 and 4, 04 sections 1 to 3
 (S0 to S2), 4, 5 and 6, 05 section 2, 06 sections 4 to 6, 07 section 9.
@@ -34,6 +34,15 @@ M2 is done when every ticket below is closed, `scripts/check.sh` is green, the a
 Claude Code, and eval cases E1, E3, E4, E6, E9 and E12 pass in Claude Code (document 06 section 6) under the
 trial rule in Q2, and every M2 change in `docs/review-log.md` has been reviewed again and passes, or Aakash has decided on it.
 Then stop and ask Aakash before M3.
+
+Closed on 2026-11-19. Tickets 07 to 13 are closed, `scripts/check.sh` is green, the always-on hook is active in
+Claude Code (check 8 of `tickets/07-always-on-hook.md`, observed on 2026-11-16: `docs/adr/0003` H1), and the six cases pass on the final text (the
+proving run, 16 of 16 cases, with E1's saved trials graded again under its new write checks:
+`tickets/13-s2-assess-and-level.md`). Of the eight changes in
+`docs/review-log.md`, five pass their re-review: rows 1, 2, 3 and 7, and row 8, which is the change that closed M2
+(PR #20, re-reviewed on 2026-11-19). Aakash decided on rows 4, 5 and 6 after a third review: row 5 is fixed (that
+fix is row 8), and rows 4 and 6 are the first M3 ticket ("Carried into M3", below). He asked for the M3
+plan next, with no paid run until he has seen its cost figure.
 
 | # | File | Makes work | Blocked by |
 | --- | --- | --- | --- |
@@ -107,6 +116,27 @@ budget carry more weight here.
 
 Work M2 left for later, each with the file that says why:
 
+- The first M3 ticket: rows 4 and 6 of `docs/review-log.md`, which Aakash carried into M3 on 2026-11-19 after
+  the third review. Fix test-first, then prove with a paid run inside M3's cost figure. The 8 cases that read the
+  changed text (`s0-status`, `s0-status-s1`, E1, E6, `s2-gate-l1`, `s2-no-check`, `s2-secret`, `s2-level`) cost
+  3.80 USD at 3 trials in the proving run's transcripts, so about 4.25 USD with the judge calls.
+  - Decided by Aakash: `status` lists the open decisions and invites no answer, so a reply such as "reply yes to
+    accept" fails case `s0-status-s1` (`docs/adr/0002`, "Status").
+  - Decided by Aakash: `LEVELS.md` names the tier that runs some commands freely and asks before others as a
+    safety fact, and says the level stays L2 when a sandbox is already on (`docs/adr/0002`, "Levels").
+  - From the third review's minor findings, the builder's proposal for that ticket: the judge of `s0-status-s1`
+    requires the level and the ticket outright; static pins for the sentences E1 relies on ("IN7, so at least
+    L2", the "stated rule" sentence, "never that a safety fact needs no part").
+- E1 can pass on a goal the user never saw: in one proving trial the agent took the scripted answer as a gate
+  skip and headed the goal "approval skipped". The case only checks that the draft mark is gone; that trial
+  failed on its level alone (`tickets/13-s2-assess-and-level.md`, "Third review").
+- E1's strict write check covers turns 1 and 2 and every turn before the last. So from turn 3 on, the turn that
+  records the level may write `GLOSSARY.md` and `docs/adr/` whatever the level, and whether or not the user
+  accepted it: an L0 trial that does so is not blocked. When that turn is turn 3, this is looser than the check
+  it replaced. The ninth turn of a trial that never records a level is not checked strictly either. A last turn
+  that ends in an error is checked strictly even if it recorded the level
+  (`tests/test_evals.py`, the `shortcut:` note). If M3 stops E1 from reading its scripted answer as a gate skip,
+  turn 3 can be strict again.
 - Revisit the always-on agreement after the M3 real-project trials (Q6).
 - Break down the always-on cost: 5,479 tokens per request were measured, and about 2,450 of them are outside the
   budget check (`README.md`, "Always-on cost").
