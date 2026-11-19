@@ -1,7 +1,7 @@
 # Ticket 13: S2 assess and choose a level
 
-Status: open
-Blocked by: 12 (and open questions Q1, Q2 and Q5 in `PLAN.md`)
+Status: closed
+Blocked by: 12 (built as Aakash answered Q1, Q2 and Q5 in `PLAN.md`)
 GOAL lines: M2, C3, C5 · Spec: docs/spec/04 sections 3 (S2) and 6, 02 sections 3 and 4, 06 sections 4 and 6, 07 section 2
 
 ## What it makes work
@@ -41,9 +41,28 @@ S2 decides how much harness the goal needs, records the level and the reason, an
 6. M2 acceptance: E1, E3, E4, E6, E9 and E12 all pass under the Q2 trial rule in one recorded run, and
    `scripts/check.sh` exits 0.
 
-## Where the checks stand (2026-11-19)
+## Where the checks stand now (2026-11-19, second acceptance run)
 
-The ticket stays open: check 6 is not met. The last row of `evals/RESULTS.md` is the acceptance run, 3 trials each.
+Check 6 is met. The last row of `evals/RESULTS.md` is the run, on the tree with the resume change and the judge
+fix: E1, E3, E4, E6, E9 and E12 each pass 3 of 3, with no block.
+
+| Check | Case | Result |
+| --- | --- | --- |
+| 1 | E6 | 3 of 3, in the second acceptance run |
+| 2 | E1 | 3 of 3, in the second acceptance run |
+| 3 | `s2-no-check` | 3 of 3 before the resume change; no run since it lost its confirm turn |
+| 4 | `s2-secret` | 3 of 3 before the resume change; no run since it lost its confirm turn |
+| 5 | `s2-level` | 2 of 3 in the first acceptance run; the resume change does not touch it |
+| 6 | M2 acceptance | Met: all six cases 3 of 3 |
+
+Also without a run on the final text: `s2-gate-l1` and `s1-skip-gate`. Aakash chose to run the six acceptance
+cases only (0.98 USD of the 32 USD cap is left). On 2026-11-19 he also chose to close the ticket on the evidence
+above for checks 3 and 4, without a new run: the S2 text has not changed since those passes, and E6 runs the same
+path on the final tree.
+
+## Where the checks stood after the first acceptance run (2026-11-19)
+
+Check 6 was not met. That run is the row before the last in `evals/RESULTS.md`, 3 trials each.
 
 | Check | Case | Result |
 | --- | --- | --- |
@@ -60,8 +79,40 @@ What the failed trials show:
   started S2. Each step followed what the agent had asked, but the resume ran ahead of S0 step 3. This has
   happened in about one resume in three since ticket 12, through four rewordings of that step.
 - E12, the blocked trial: the resume reply ended with a recap ("Nothing is redone. A fresh scan matches the log").
-- E3 trial 2 and E12 trials 1 and 3: the judge's own reason says the condition is met, and its verdict says fail.
+- E3 trial 2 and E12 trial 3: the judge's own reason says the condition is met, and its verdict says fail.
   `evals/judge.py` asks for the verdict before the reason.
+- E12 trial 1: the judge read the second reply's first line ("Answer the done-when question first: ...") as an
+  answer, not a next action. Its reason and its verdict agree, so a judge fix will not change this one.
+
+## After the failed acceptance run (2026-11-19, branch `ticket/13-m2-acceptance`)
+
+Aakash was offered three options: (1) fix the judge, (2) drop the resume's confirm turn, (3) merge with the
+ticket open and decide later. His answer: "merged. use paralell agents and do all 3". The builder read that as:
+do 1 and 2; the merge did 3. The second acceptance run, above, is the only paid run on these changes.
+
+- A resume no longer has a confirm turn: with a `STATE.md`, `/diy-harness` carries on with the next step of a
+  built stage in the same reply, and for a stage not built yet it reports and stops. The gates are unchanged,
+  with one effect: after the S1 gate has set the stage to S2, a later `/diy-harness` starts S2 without asking
+  again. This departs from document 04 section 3 and from the Q5 reading of E4; the "Resume" row of
+  `docs/adr/0002` records it.
+- The resume text also says not to rescan the repo and not to narrate what was read: one E12 trial ended its
+  resume reply with such a recap.
+- Cases E3, E6, E9, `s2-no-check`, `s2-secret` and `s2-gate-l1` lose their scripted "Yes, continue." turn. The
+  judge conditions of E3, E9 and `s2-gate-l1` point one reply earlier; those of the other three are unchanged.
+  E9's write check moved with its turn count and still covers every turn. No fixture, pattern or other block
+  check changed.
+- E4's pass condition was rewritten by the builder, not by Aakash: stage S5, ticket 03, its next step, "not
+  built yet", and no work started. Aakash accepted that wording on 2026-11-19 (rule 4), together with the S2
+  effect above. When S5 is built in M3, E4 goes back to document 06's "continues ticket 03".
+- `evals/judge.py` asks for the reason before the verdict, and says the verdict must agree with the reason.
+- Not proved by a case: a resume at stage S0 asks which stage to work in; the first line of the "not built yet"
+  reply; "do not rescan the repo" (in the second acceptance run, 1 of the 9 resumes of E3, E4 and E12 did
+  dispatch the scan again, and no check caught it).
+- E12's "no block" in trial 3 of that run is borderline: the reply ended "I wrote no files this turn", which
+  the judge allowed as the line on what was skipped.
+- Left open, outside this change: `evals/run_evals.py` counts an unusable judge reply as "not blocked" on a
+  block check. No transcript of the second acceptance run has one. Fix it test-first before M3's first
+  critical case.
 
 ## As built (2026-11-19)
 

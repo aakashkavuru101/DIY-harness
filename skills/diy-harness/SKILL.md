@@ -40,19 +40,12 @@ From this command on, for the rest of the session:
 
 Purpose: resume, or start cleanly.
 
-**If `.harness/STATE.md` exists:**
+**If `.harness/STATE.md` exists:** resume in the same reply. Do not ask whether to continue. Do not redo an earlier stage or rescan the repo.
 
-1. The first line asks whether to continue at the next step that `STATE.md` names. Here, that question is the next action. A yes to it confirms the stage only: it never answers an open decision.
-2. Report the stage, the level, the current ticket and the next step, and how many decisions are open: the number only.
-3. Stop and wait for the user to confirm. Do not start the work, and do not redo an earlier stage. Listing the open decisions or your recommended answers, asking them, or showing a draft for approval is starting the work: it belongs in the reply after the user confirms.
+- The stage is S0, S1 or S2: carry on with its next step now, under that stage's own rules. At S0, ask which stage to work in, as in step 4 below. At S1, run the next grilling round, with at most 5 decisions or questions in the reply; when the frontier is empty, run the gate instead and show the draft goal line by line for approval. At S2, run the assessment, steps 1 to 6, ending with the level proposal.
+- The stage is S3 to S6: report the stage, the level, the current ticket and the next step from `STATE.md`, say that this stage is not built yet, and stop. Start no work on it.
 
-   The whole reply looks like this, plus the line on what was skipped:
-
-   ```
-   Continue S6 with the retro on last week's session? (yes / no)
-   Stage: S6 Run and retro · Level: L1 · Ticket: none · Open decisions: 3
-   Next step: the retro on the session of 12 May.
-   ```
+The stage gates still hold: the S1 gate stops and asks before S2 starts, and the S2 gate waits for the user's level. The reply follows "Every reply": the next action on the first line, then the one-line stage restatement, no recap. Do not narrate what you read, re-checked or left unchanged.
 
 **Otherwise:**
 
@@ -64,7 +57,7 @@ Purpose: resume, or start cleanly.
 3. Read [the template](references/templates/STATE.md), in this skill's own folder, and create `.harness/STATE.md` from it. Keep its headings and field names, fill in every field, and leave out its comments. The stage is S0 Orient, and one log line holds the scan's facts. Write no other file. Redact secrets and personal data in `STATE.md` and in every file under `.harness/`, now and at every later update: paths and kinds, never a value. If the template cannot be read, say so and ask the user to allow the read; do not improvise the file.
 4. Tell the user what the scan found in a few lines, including any file that holds secrets. Ask which stage to work in, and recommend S1 Lock the goal.
 
-Done when: the user has confirmed the stage to work in.
+Done when: the user has confirmed the stage to work in. On a resume at S1 or later, `STATE.md` already names it.
 
 ## S1 Lock the goal
 

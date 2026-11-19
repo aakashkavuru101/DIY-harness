@@ -23,7 +23,9 @@ def prompt(condition, turns):
         "",
         "## Output",
         "",
-        'Return only a JSON object: {"pass": true or false, "reason": "one sentence"}.',
+        # Reason first: asked for the verdict first, the judge committed to it and then wrote a reason against it.
+        'Return only a JSON object: {"reason": "one sentence", "pass": true or false}.',
+        'Write the reason first, then decide "pass" from it: the verdict must agree with the reason.',
     ])
 
 
