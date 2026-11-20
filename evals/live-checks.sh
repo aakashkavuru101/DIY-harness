@@ -67,11 +67,12 @@ done
 as_dev python3 -I evals/run_evals.py --case smoke-isolation --trials 1 --ceiling-usd 1 || fail "smoke-isolation"
 grep -rl "ZQX-LEAK" "$(latest)" && fail "a developer marker reached the runner's transcript"
 
-# Checks 1, 3, 4, 5 and 7: real Skill and subagent calls graded, two turns, a file written, E4 run end to end
-# (it passes since ticket 11 built the parent), and an env run with no token in sight
+# Checks 1, 3, 4, 5 and 7: real Skill and subagent calls graded, two turns, a file written, the parent run end to
+# end through s0-status (a report that changes nothing; E4 is an open-ended build turn since M3), and an env run
+# with no token in sight
 repo_before=$(git status --porcelain -- . ':!evals/RESULTS.md')
 flags_before=$(ls "$HOME/.claude/diy-harness/sessions" 2>/dev/null)
-python3 -I evals/run_evals.py --case smoke-two-turn --case smoke-env --case smoke-skill-subagent --case E4 --trials 1 \
+python3 -I evals/run_evals.py --case smoke-two-turn --case smoke-env --case smoke-skill-subagent --case s0-status --trials 1 \
   --ceiling-usd 3 \
   > "$dev/out.txt" 2>&1
 code=$?
@@ -93,7 +94,7 @@ if new:
     print("tools not yet reviewed:", ", ".join(new))
 sys.exit(1 if new else 0)
 EOF
-grep -q '^PASS E4' "$dev/out.txt" || fail "E4 did not pass"
+grep -q '^PASS s0-status:' "$dev/out.txt" || fail "s0-status did not pass"
 grep -q 'TOKEN LEAK' "$dev/out.txt" && fail "the runner found the token in its output"
 # Read from the environment inside python, so the token never shows in a command line (ps)
 python3 -I -c 'import os, pathlib, sys; t = os.environ["CLAUDE_CODE_OAUTH_TOKEN"]

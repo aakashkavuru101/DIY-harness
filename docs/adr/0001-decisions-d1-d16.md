@@ -12,8 +12,8 @@ the milestone listed before building on it.
 | --- | --- | --- | --- | --- |
 | D1 | How the parent calls upstream user-invoked commands | Vendor them as stage playbooks inside the parent | Confirmed | |
 | D2 | Question cap during grilling | At most 5 per round, no cap on the total; patch `grilling` | Confirmed | |
-| D3 | Which review | Matt's two-axis `code-review`, Standards axis fed ponytail-review's checklist | Pending | M3 |
-| D4 | How much testing | TDD only at agreed seams for non-trivial logic | Pending | M3 |
+| D3 | Which review | Matt's two-axis `code-review`, Standards axis fed ponytail-review's checklist. Confirmed by Aakash on 2026-11-20 | Confirmed | |
+| D4 | How much testing | TDD only at agreed seams for non-trivial logic; a trivial change needs no test. Confirmed by Aakash on 2026-11-20 | Confirmed | |
 | D5 | Always-on content and cost | One generated file; measure tokens; off switches. Aakash: "keep D5, always ON, but consider the risk and ways to manage and mitigate it". The builder's proposal for that is the D5 table in `PLAN.md`; he accepted its nine mitigations as built on 2026-11-19 | Confirmed | |
 | D6 | Name collisions with upstream plugins | Keep upstream names; README says uninstall upstream; `check.sh` warns | Confirmed | |
 | D7 | Ponytail telemetry | Drop band, board, statusline and webhooks entirely | Confirmed | |
@@ -23,6 +23,6 @@ the milestone listed before building on it.
 | D11 | Product name, GitHub organisation, language | Organisation: `aakashkavuru101`. Language: prompts in English, replies in the user's language. Name: `diy-harness` stays a working name (C9). A rename must also change: the `DIY_HARNESS_OFF` variable, the `diy-harness/` folder under the Claude config folder, and the `diy-harness` text in the hook messages (`hooks/`) | Organisation and language confirmed; name pending | No milestone set: Aakash chooses the name |
 | D12 | Harness telemetry | Local JSON lines; export only by opt-in | Pending | M7 |
 | D13 | Content capture in telemetry | Off by default; opt-in with redaction | Pending | M7 |
-| D14 | Default autonomy tier | Tier B at L0 and L1 | Pending | M3 |
+| D14 | Default autonomy tier | Tier B at L0 and L1: S1's default answer asks before each edit and each command. Confirmed by Aakash on 2026-11-20 | Confirmed | |
 | D15 | Sandbox fallback | Container or dev container; say so at S3 | Pending | M5 |
 | D16 | Eval trials and budget | 3 trials, 5 on critical cases, user-set cost ceiling | Pending | M6 |

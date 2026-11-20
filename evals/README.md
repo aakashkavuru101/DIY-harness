@@ -29,15 +29,15 @@ saved for the token. Bash commands and hooks inside a trial do not get it (`CLAU
 
 ```sh
 python3 evals/run_evals.py                          # every case, 3 trials each
-python3 evals/run_evals.py --case E4 --trials 1     # one case, one trial
-sh evals/live-checks.sh                             # the runner's own paid checks (ticket 09)
+python3 evals/run_evals.py --case s0-status --trials 1  # one case, one trial
+sh evals/live-checks.sh                             # the runner's own paid checks (ticket 09), s0-status as the smoke case
 ```
 
 | Option | Default | Meaning |
 | --- | --- | --- |
 | `--case ID` | all | Run only this case; repeatable |
 | `--trials N` | 3 | Trials per case. A case passes when at least two thirds of them pass and none blocks (PLAN.md Q2) |
-| `--ceiling-usd USD` | what is left | The ceiling for this run. All paid runs together stay within the cap in PLAN.md Q2 (39 USD for M2), counted in [RESULTS.md](RESULTS.md); the run gets at most what is left, and none starts below 0.10 USD. One call gets at most 1 USD; a call that needs more stops the run. No call starts unless that still covers the dearest call so far |
+| `--ceiling-usd USD` | what is left | The ceiling for this run. All paid runs together stay within the cap in PLAN.md Q2 (39 USD, unchanged in M3), counted in [RESULTS.md](RESULTS.md); the run gets at most what is left, and none starts below 0.10 USD. One call gets at most 1 USD; a call that needs more stops the run. No call starts unless that still covers the dearest call so far |
 | `--no-plugin` | off | Run without this plugin, to measure what it adds (the "Always-on cost" section of the root README). RESULTS.md marks the row "(no plugin)" |
 
 Claude Code checks a call's budget only after each API call, so a call dearer than any before it can still take the

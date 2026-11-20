@@ -33,7 +33,7 @@ From this command on, for the rest of the session:
 | Argument | Do this |
 | --- | --- |
 | none | Run S0 Orient below. |
-| `status` | Read `.harness/STATE.md` and report the stage, the level, the current ticket and the open decisions. It lists every open decision, however many: it asks nothing. Change nothing: write no file, call no skill and run no command that changes anything. If the file does not exist, say so and stop. |
+| `status` | Read `.harness/STATE.md` and report the stage, the level, the current ticket and the open decisions. The first line says to run `/diy-harness` to continue. It lists every open decision as `STATE.md` words it, however many, and invites no answer to any of them: it is a report, and it asks nothing. Change nothing: write no file, call no skill and run no command that changes anything. If the file does not exist, say so and stop. |
 | `level` | Run the S2 level assessment again on the current state: see "Run again" under S2 Assess and choose a level. |
 | anything else | The text says what the harness is for and opens the S1 grilling. If `.harness/STATE.md` exists, run S0 Orient and take the text as input to the stage it names. Otherwise run steps 1 to 3 of S0 Orient, then start S1 Lock the goal in the same reply: the text is the user's choice of stage. |
 
@@ -44,7 +44,8 @@ Purpose: resume, or start cleanly.
 **If `.harness/STATE.md` exists:** resume in the same reply. Do not ask whether to continue. Do not redo an earlier stage, and do not dispatch the scan again.
 
 - The stage is S0, S1 or S2: carry on with its next step now, under that stage's own rules. At S0, ask which stage to work in, as in step 4 below. At S1, run the next grilling round, with at most 5 decisions or questions in the reply; when the frontier is empty, run the gate instead and show the draft goal line by line for approval. At S2, run the assessment, steps 1 to 6, ending with the level proposal.
-- The stage is S3 to S6: report the stage, the level, the current ticket and the next step from `STATE.md`, say that this stage is not built yet, and stop. Start no work on it. Here the first line says that this stage is not built yet.
+- The stage is S3, S4 or S5: read that stage's file, as "S3 Design, S4 Slice, S5 Build" below says, and carry on with its next step now, under its rules.
+- The stage is S6: report the stage, the level and the next step from `STATE.md`, and stop. Start no work on it. Here the first line says that the harness is built and that the retro stage, S6, is not built yet.
 
 The stage gates still hold: the S1 gate stops and asks before S2 starts, and the S2 gate waits for the user's level. The reply follows "Every reply": the next action on the first line, then the one-line stage restatement, no recap. Do not narrate what you read, re-checked or left unchanged.
 
@@ -74,7 +75,7 @@ Purpose: a goal sharp enough to steer by.
    - observed failures the user has already hit;
    - constraints (data that must not leave, budget, deadlines);
    - what must never happen in this repo;
-   - the autonomy tier the user wants: how much the agent may do without asking.
+   - the autonomy tier the user wants: how much the agent may do without asking. Your recommended answer: the agent asks before each edit and each command (tier B). A tier that lets it run commands without asking gets at least L2.
 
    Leave out a topic that the user's opening text, `STATE.md` or the draft goal already settles. The open decisions in `STATE.md` are the frontier. Look facts up yourself; ask only for decisions.
 
@@ -99,17 +100,32 @@ Purpose: decide how much harness this goal needs.
 3. Find the check command yourself: read the package manifest's scripts, the Makefile, the CI files and the test folders. Never ask the user what the test or check command is; name the one you found. If the repo has none, propose the cheapest real check the language offers without installing anything, as the first ticket.
 4. Read [LEVELS.md](references/LEVELS.md) and [PARTS.md](references/PARTS.md), in this skill's own folder. Map each goal line and each observed failure to the parts that answer it.
 5. Apply the ponytail ladder to each part: does it need to exist, is it already in the repo, can an existing tool do it? Drop what fails.
-6. Propose the level: the highest minimum level among the parts that remain, which is the lowest level that meets the goal. In doubt between two levels, propose the lower one and name the failure that would earn the next. Give one line per part saying what it answers, at most 5 lines per group, with the check command and the secrets you found. Use the grilling format, so "yes" accepts the level you recommend. Then stop and wait: the level is the user's decision.
+6. Propose the level: the highest minimum level among the parts that remain, which is the lowest level that meets the goal. A part that answers one of the three safety facts in LEVELS.md still counts toward the level when it is already there: list it as already there. In doubt between two levels, propose the lower one and name the failure that would earn the next. Give one line per part saying what it answers, at most 5 lines per group, with the check command and the secrets you found. Use the grilling format, so "yes" accepts the level you recommend. Then stop and wait: the level is the user's decision.
 
 The gate. Once the user has chosen a level:
 
 - record it in `STATE.md` with the reason: the level field reads like `- Level: L1, because <the reason in one clause>`, and the log gets a line;
 - at L1 or above, move the terms and decisions parked in `.harness/research/notes.md` to `GLOSSARY.md` and `docs/adr/`, in the formats `domain-modeling` gives. If those files exist, add to them, never overwrite;
-- set the stage to `S3 Design`, then stop. S3 is not built yet: say so.
+- set the stage to `S3 Design` and set the next step, then stop, and ask whether to start S3. Do not start S3 in the same reply.
 
 Done when: the user has chosen a level, and `STATE.md` records it with the reason.
 
 Run again (`level`). Run steps 1 to 6 on the current state, whatever the stage. In step 1, reuse the newest `.harness/research/audit-*.md` when one exists, and run the audit when none does. Leave `.harness/GOAL.md` unchanged. Once the user has chosen, follow the first two points of the gate; the stage stays as it is, unless it is S2. Without an approved `GOAL.md`, say so and stop.
+
+## S3 Design, S4 Slice, S5 Build
+
+When one of these stages starts or resumes, read its file, in this skill's own folder, and follow it. If the file cannot be read, say so and ask the user to allow the read; do not improvise the stage.
+
+- S3 Design: the smallest set of parts that meets the goal. [S3.md](references/stages/S3.md)
+- S4 Slice: a build order that works end to end at every step. Skipped at L0. [S4.md](references/stages/S4.md)
+- S5 Build: one ticket working, proved, reviewed and committed. [S5.md](references/stages/S5.md)
+
+In all three:
+
+- Tell every skill and subagent you start the rule on secrets: paths and kinds, never a value, and never open such a file.
+- After every round and every step, update the next step and the open decisions in `STATE.md`, so a resume continues where it stopped.
+- Each stage ends at its gate: update `STATE.md`, stop, and ask before the next stage.
+- "Just do it" skips the current gate only: take your recommended answers and log the skip in `STATE.md`. It never covers a destructive action, a write to the agent's settings, or the question about the user's `CLAUDE.md`.
 
 ## When the session nears its context limit
 

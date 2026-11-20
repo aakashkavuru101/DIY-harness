@@ -108,7 +108,13 @@ them against any upstream.
 | `skills/diy-harness/agents/openai.yaml` | none |
 | `skills/diy-harness/references/LEVELS.md` | none |
 | `skills/diy-harness/references/PARTS.md` | none |
+| `skills/diy-harness/references/GUARDRAILS.md` | none |
+| `skills/diy-harness/references/stages/S3.md` | none |
+| `skills/diy-harness/references/stages/S4.md` | none |
+| `skills/diy-harness/references/stages/S5.md` | none |
 | `skills/diy-harness/references/templates/GOAL.md` | none |
+| `skills/diy-harness/references/templates/SPEC.md` | none |
 | `skills/diy-harness/references/templates/STATE.md` | none |
+| `skills/diy-harness/references/templates/TICKET.md` | none |
 | `evals/run_evals.py` | none; adapted from i-have-adhd `scripts/run_evals.py` and `scripts/run_scenario_eval.py` at 1ecea19 |
 | `evals/judge.py` | none; adapted from i-have-adhd `scripts/judge.py` at 1ecea19 |

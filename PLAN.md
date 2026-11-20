@@ -1,6 +1,6 @@
 # PLAN
 
-Milestones M1 and M2, both done. Each ticket is closed by changing its `Status:` line, in the same commit as the work.
+Milestones M1 and M2 (done) and M3 (open). Each ticket is closed by changing its `Status:` line, in the same commit as the work.
 A ticket is unblocked when every ticket in its "Blocked by" is closed. Build in order.
 
 ## M1: skeleton and vendoring (done)
@@ -114,45 +114,63 @@ budget carry more weight here.
 
 ### Carried into M3
 
-Work M2 left for later, each with the file that says why:
+Work M2 left for later, where each item stands now:
 
-- The first M3 ticket: rows 4 and 6 of `docs/review-log.md`, which Aakash carried into M3 on 2026-11-19 after
-  the third review. Fix test-first, then prove with a paid run inside M3's cost figure. The 8 cases that read the
-  changed text (`s0-status`, `s0-status-s1`, E1, E6, `s2-gate-l1`, `s2-no-check`, `s2-secret`, `s2-level`) cost
-  3.80 USD at 3 trials in the proving run's transcripts, so about 4.25 USD with the judge calls.
-  - Decided by Aakash: `status` lists the open decisions and invites no answer, so a reply such as "reply yes to
-    accept" fails case `s0-status-s1` (`docs/adr/0002`, "Status").
-  - Decided by Aakash: `LEVELS.md` names the tier that runs some commands freely and asks before others as a
-    safety fact, and says the level stays L2 when a sandbox is already on (`docs/adr/0002`, "Levels").
-  - From the third review's minor findings, the builder's proposal for that ticket: the judge of `s0-status-s1`
-    requires the level and the ticket outright; static pins for the sentences E1 relies on ("IN7, so at least
-    L2", the "stated rule" sentence, "never that a safety fact needs no part").
-- E1 can pass on a goal the user never saw: in one proving trial the agent took the scripted answer as a gate
-  skip and headed the goal "approval skipped". The case only checks that the draft mark is gone; that trial
-  failed on its level alone (`tickets/13-s2-assess-and-level.md`, "Third review").
-- E1's strict write check covers turns 1 and 2 and every turn before the last. So from turn 3 on, the turn that
-  records the level may write `GLOSSARY.md` and `docs/adr/` whatever the level, and whether or not the user
-  accepted it: an L0 trial that does so is not blocked. When that turn is turn 3, this is looser than the check
-  it replaced. The ninth turn of a trial that never records a level is not checked strictly either. A last turn
-  that ends in an error is checked strictly even if it recorded the level
-  (`tests/test_evals.py`, the `shortcut:` note). If M3 stops E1 from reading its scripted answer as a gate skip,
-  turn 3 can be strict again.
-- Revisit the always-on agreement after the M3 real-project trials (Q6).
-- Break down the always-on cost: 5,479 tokens per request were measured, and about 2,450 of them are outside the
-  budget check (`README.md`, "Always-on cost").
-- E4 returns to document 06's "continues ticket 03" when S5 is built (`docs/adr/0002`, "Resume").
-- `PARTS.md` lacks the "Proved by" column that S3 needs (`tickets/13-s2-assess-and-level.md`).
-- The permission prompt for a skill's own template read in a real install is unchecked until the M4 smoke test
-  (`docs/adr/0003` R9).
-- Not proved by a case yet: "add to them, never overwrite" at the S2 gate, `level` reusing a saved audit, a resume
-  at stage S0, and the first line of the "not built yet" reply (`tickets/13-s2-assess-and-level.md`). Also four
-  sentences added in the M2 re-review: "do not dispatch the scan again" on a resume (1 of 9 resumes did, in the
-  second acceptance run), `research` told the secrets rule, secret files kept out of tree-wide searches, and
-  servers, hooks and rules listed by name only.
-- `evals/run_evals.py`: a ledger row whose first cell is `---` or `Date` is skipped as a header, and a second
-  signal that lands inside `finish()` can lose the run's ledger row. Both were left as they are.
-- The parent `SKILL.md` holds S0 to S2 inline. Move stage detail to `references/` before S3 to S6 double it
-  (document 04's header: the parent stays short).
+- Rows 4 and 6 of `docs/review-log.md` (`status` invites no answer; `LEVELS.md` names the mixed tier and a sandbox
+  already on): done in ticket 14's text, with the `s0-status-s1` judge and the static pins the third review
+  proposed. Their paid proof moved to the M3 paid run.
+- E1 can pass on a goal the user never saw (`tickets/13-s2-assess-and-level.md`, "Third review"): still open.
+- E1's strict write check leaves the level turn unchecked from turn 3 on (`tests/test_evals.py`, the `shortcut:`
+  note): still open.
+- Revisit the always-on agreement (Q6): moved to the M3 real-project trials.
+- Break down the always-on cost (`README.md`, "Always-on cost"): still open.
+- E4 back to "continues ticket 03": done in ticket 14 (`docs/adr/0002`, "Resume").
+- The "Proved by" column in `PARTS.md`: done in ticket 14.
+- The permission prompt for a skill's own file read in a real install (`docs/adr/0003` R9): moved to M4's smoke test.
+- The S0 to S2 sentences no case proves (`tickets/13-s2-assess-and-level.md`): still open.
+- `evals/run_evals.py`'s header-skip nit and the signal window in `finish()`: still open, left as they are.
+- Stage detail out of the parent `SKILL.md`: done for S3 to S5, which live in `references/stages/`; S0 to S2 stay
+  inline.
+
+## M3: stages S3 to S5, levels L0 and L1 (open)
+
+GOAL lines: M3, DN4, G1, C1 to C5, C12. Spec: docs/spec/02 section 3, 04 section 3 (S3 to S5), 06 sections 4 and 6,
+07 sections 5 and 6.
+Decisions in force: docs/adr/0001 (D3, D4 and D14 confirmed on 2026-11-20), docs/adr/0002 (its "Departures in M3" row
+awaits Aakash), docs/adr/0003 (G1 to G6).
+
+After a level is chosen, `/diy-harness` goes on: S3 designs the parts, S4 cuts them into tickets (skipped at L0), and
+S5 builds one ticket at a time. M3 is done when (document 06 section 6, GOAL.md DN4):
+
+- the 13 cases E1 to E12 except E8, plus E14 and E15, pass in Claude Code;
+- one real L0 and one real L1 harness, built with `/diy-harness` in Aakash's own projects, are signed off by him.
+
+Then stop and ask Aakash before M4.
+
+| # | File | Makes work | Blocked by |
+| --- | --- | --- | --- |
+| 14 | tickets/14-s3-to-s5.md | S3, S4 and S5 at L0 and L1, and the 13 M3 cases written | none |
+
+### The lean rule
+
+Aakash asked for far less ceremony on 2026-11-20. So in M3:
+
+- Text (skills, references) is proved by static checks: `scripts/check.sh` and `tests/check.test.sh`.
+- The cases are written and pinned now, and run once, together, when Aakash sets a budget. The cap stays 39 USD;
+  0.61 USD is left (`evals/RESULTS.md`).
+- Real use first: Aakash tries `/diy-harness` in a project of his own, and what breaks there is fixed.
+- One katsuo review per change. Rules 3 and 6 of `.claude/CLAUDE.md` still ask for more; their rewording is his.
+
+### Owed before M3 closes
+
+- The paid run, once Aakash sets its budget: every case that runs `/diy-harness`, the 13 M3 cases among them,
+  because the text each of them reads has changed. The last full run (16 cases at 3 trials) cost 7.32 USD; no S3
+  to S5 case has ever run, so their cost is not measured.
+- The real-project trials: one L0 and one L1 harness, signed off.
+- Aakash's decisions on the six departures from the spec (`docs/adr/0002`, "Departures in M3").
+- What the review of this change left for the trial (`tickets/14-s3-to-s5.md`, "Left for the trial").
+
+Out of M3: S6 (a resume there reports that it is not built yet), Codex, `install.sh`, and everything above L1.
 
 ## Rules for every ticket
 

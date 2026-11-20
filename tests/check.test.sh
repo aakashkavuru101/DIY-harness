@@ -316,7 +316,8 @@ for must in 'set the stage in `STATE\.md` to `S1 Lock the goal`' 'every file und
   grep -q "$must" "$parent" || fail "$parent lacks: $must"
 done
 # Aakash, 2026-11-19 (docs/adr/0002, "Resume"): a resume carries on in the same reply, with no confirm turn
-for must in 'resume in the same reply' 'Do not ask whether to continue' 'S3 to S6' 'this stage is not built yet' \
+# Ticket 14: S3 to S5 are built, so only S6 is "not built yet"
+for must in 'resume in the same reply' 'Do not ask whether to continue' 'The stage is S6' 'S6, is not built yet' \
   'Do not narrate'; do
   grep -q "$must" "$parent" || fail "$parent lacks: $must"
 done
@@ -364,7 +365,8 @@ grep -q 'Ask the whole frontier in one round' skills/grilling/SKILL.md && fail "
 # M2 re-review, text fixes (Aakash, 2026-11-19: fix and prove now)
 for must in 'Never open a file that holds or may hold secrets' 'whatever the stage' 'lists every open decision' \
   'under the open decisions until the user answers' 'do not dispatch the scan again' 'tree-wide search' \
-  'by name only' 'approval skipped' 'Tell it the rule on secrets' 'first line says that this stage is not built yet'; do
+  'by name only' 'approval skipped' 'Tell it the rule on secrets' \
+  'first line says that the harness is built and that the retro stage, S6, is not built yet'; do
   grep -q "$must" "$parent" || fail "$parent lacks: $must"
 done
 grep -q 'Stage: S5 Build · Ticket: 03' "$parent" && fail "$parent's example reply equals the e4-resume fixture"
@@ -373,10 +375,77 @@ grep -q 'rescan the repo' "$parent" && fail "$parent still says 'rescan the repo
 grep -q 'run commands without asking' "$refs/LEVELS.md" || fail "$refs/LEVELS.md does not count a command-running tier as a safety fact"
 grep -q 'Minimal by default' "$refs/PARTS.md" || fail "$refs/PARTS.md does not point at the minimal-by-default rule"
 
+# Ticket 14 (M3): S3 to S5 at L0 and L1. Structure, the interface the eval cases rely on, and four safety
+# sentences. Behaviour is proved in a real project, not here.
+stages=$refs/stages pb=$refs/playbooks
+# has <file> <pattern>...: the file holds every pattern (grep -E, case-insensitive)
+has() { hf=$1; shift; for must in "$@"; do grep -qiE -- "$must" "$hf" 2>/dev/null || fail "$hf lacks: $must"; done; }
+# says <file> <sentence>...: the file holds every sentence, word for word
+says() { sf=$1; shift; for must in "$@"; do grep -qF -- "$must" "$sf" 2>/dev/null || fail "$sf lacks the sentence: $must"; done; }
+# the three sentences E1 relies on (PLAN.md, "Carried into M3")
+has "$refs/LEVELS.md" 'IN7, so at least L2' 'is a stated rule' 'never that a safety fact needs no part'
+# interface: the first line `status` gives, and the S2 gate's question about S3
+says "$parent" 'The first line says to run `/diy-harness` to continue.' 'ask whether to start S3'
+# the parent points at one file per stage, and no longer calls S3 unbuilt
+grep -q 'S3 is not built yet' "$parent" && fail "$parent still says S3 is not built"
+for s in S3 S4 S5; do
+  has "$parent" "references/stages/$s\.md"
+  has "$stages/$s.md" '^Done when:'
+done
+# every part's proof in PARTS.md is the "Proved by" cell of document 02 section 4
+sed -n '/^## 4\. The parts catalogue/,/^## 5\./p' docs/spec/02-harness-theory-and-levels.md | grep -E '^\| [A-Z]{2}[0-9]+ \|' |
+  awk -F' [|] ' '{ sub(/^\| /, "", $1); sub(/ \|$/, "", $5); print $1 " " $5 }' > "$tmp/proofs.want"
+while read -r id proof; do
+  grep -E "^\| $id \|" "$refs/PARTS.md" | grep -qF -- "| $proof |" || fail "$refs/PARTS.md part $id lacks its proof: $proof"
+done < "$tmp/proofs.want"
+# GUARDRAILS.md: document 07's ten threats, six layers, four tiers and the parts by level
+for n in 1 2 3 4 5 6 7 8 9 10; do has "$refs/GUARDRAILS.md" "^\| T$n \|"; done
+for n in 1 2 3 4 5 6; do has "$refs/GUARDRAILS.md" "^\| $n\. "; done
+for t in A B C D; do has "$refs/GUARDRAILS.md" "^\| $t\. "; done
+for l in L0 L1 L2 L3 L4; do has "$refs/GUARDRAILS.md" "^\| $l \|"; done
+# the two templates of document 04 section 5, one screen each, and the playbooks that write them
+has "$tpl/SPEC.md" '^## Parts' 'Plane and ID' 'Answers' 'Lives at' 'Adapter' 'Proved by' 'Expires when' \
+  '^## Decisions' '^## Overrides' '^## Parked'
+has "$tpl/TICKET.md" '^Status:' '^Part ID:' '^Blocked by:' '^## What it makes work' '^## Acceptance' 'red without'
+for f in "$tpl/SPEC.md" "$tpl/TICKET.md"; do
+  [ -f "$f" ] && [ "$(wc -l < "$f")" -le 40 ] || fail "$f is missing or longer than one screen (40 lines)"
+done
+has "$pb/to-spec.md" 'templates/SPEC\.md' '`\.harness/SPEC\.md`'
+has "$pb/to-tickets.md" 'templates/TICKET\.md' '`\.harness/tickets/<NN>-<slug>\.md`'
+grep -q '\.scratch/' "$pb/to-tickets.md" && fail "$pb/to-tickets.md still writes tickets under .scratch/"
+for t in to-spec:SPEC to-tickets:TICKET; do
+  grep -F "| \`$pb/${t%:*}.md\` |" vendor/PATCHES.md | grep -q "templates/${t#*:}\.md" ||
+    fail "vendor/PATCHES.md has no row for the template patch to ${t%:*}.md"
+done
+# each stage file calls its skills and playbooks (document 03 section 3) and names the paths it writes
+has "$stages/S3.md" 'Skill tool with `grilling`' 'Skill tool with `prototype`' 'playbooks/to-spec\.md' \
+  'GUARDRAILS\.md' '`## Spec`' '`## Ticket`' '`Parked:`' '`Overrides:`'
+has "$stages/S4.md" 'Skill tool with `grilling`' 'playbooks/to-tickets\.md'
+has "$stages/S5.md" 'playbooks/implement\.md' 'Skill tool with `tdd`' 'Skill tool with `writing-for-agents`' \
+  'Skill tool with `diagnosing-bugs`' 'Skill tool with `wizard`' 'Skill tool with `code-review`' \
+  '`<!-- diy-harness:start -->`' '`<!-- diy-harness:end -->`' \
+  '`\.harness/guards/<name>`' '`\.harness/guards/<name>\.test\.sh`' '`\.harness/guards/pre-commit`' '`git diff --cached`'
+# The Claude Code facts in S5's guard section (exit code 2, the deny-rule forms, the settings files, the reload) are
+# `docs/adr/0003` G1 to G6: read in its documentation on 2026-11-20, not run.
+# four safety sentences, whole: the proof, the commit, the symlink, the settings
+says "$stages/S5.md" "Wait for the user's yes on the proof before building." \
+  'Commit only after the user approves, and only the paths you staged.' \
+  'When either file already has content, ask before creating the symlink, and name what the link would replace.' \
+  "Show the exact entries and wait for the user's yes before writing them."
+# the wiring check never runs the dangerous action for real, and never opens the secret
+says "$stages/S5.md" 'Both must be harmless if they go through' 'never on the real file' \
+  'skip the try and say the guard is untested'
+# D4: a parent instruction, so `tdd` stays as vendored. D3: the checklist patch. Staged work: its own patch.
+grep -qF '| `skills/tdd/' vendor/PATCHES.md && fail "skills/tdd is patched; D4 is a parent instruction"
+grep -F '| `skills/code-review/SKILL.md` |' vendor/PATCHES.md | grep -q '| D3 |' || fail "vendor/PATCHES.md has no row for the D3 patch"
+says skills/code-review/SKILL.md '`git diff --cached`'
+grep -F '| `skills/code-review/SKILL.md` |' vendor/PATCHES.md | grep -qF 'git diff --cached' ||
+  fail "vendor/PATCHES.md has no row for the staged-work clause in code-review"
+
 # evals/live-checks.sh (M2 re-review): E4 passes now that the parent is built, and the control call is charged
 # to the ledger before it runs
 live=evals/live-checks.sh
-grep -q "'^PASS E4'" "$live" || fail "$live does not expect E4 to pass"
+grep -q "'^PASS s0-status:'" "$live" || fail "$live does not expect s0-status to pass"
 grep -qE 'FAIL E4|is a stub' "$live" && fail "$live still expects E4 to fail on the stub"
 charged=$(grep -n '^ledger_row 0.1000' "$live" | head -n 1 | cut -d: -f1)
 called=$(grep -n 'as_dev claude -p' "$live" | head -n 1 | cut -d: -f1)
