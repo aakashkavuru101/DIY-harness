@@ -51,8 +51,8 @@ The stage gates still hold: the S1 gate stops and asks before S2 starts, and the
 
 **Otherwise:**
 
-1. If the folder is not a git repository, ask the user whether to run `git init`: the harness relies on commits for review. Never run it before they say yes. Keep the question under the open decisions until the user answers it. Carry on with steps 2 to 4 either way.
-2. Dispatch one subagent with a fresh context to scan the repo. Run it in the foreground, not in the background, and wait for its report before you reply. Its brief:
+1. If the folder is the user's home folder, or one that only holds other projects, do not scan it and do not offer `git init`: say so, write nothing, ask which project folder to use, and stop. An empty or new folder is a project that has not started: carry on. If the folder is not a git repository, ask the user whether to run `git init`: the harness relies on commits for review. Never run it before they say yes. Keep the question under the open decisions until the user answers it. Carry on with steps 2 to 4 either way.
+2. Dispatch one subagent with a fresh context to scan the repo. Run it in the foreground, not in the background, and wait for its report before you reply: a reply that only says the scan is still running is no reply. Its brief:
    - Use the file listing, reading and search tools, one simple command at a time, run from the repo's folder (no `cd`, no `git -C`). A chained or redirected shell command may be refused.
    - Report facts only, no advice: the language, the check commands that exist (test, lint, build), CI, hooks, steering files (`AGENTS.md`, `CLAUDE.md` and the like), existing skills, and whether there is code yet.
    - Secrets: for a file that holds or may hold secrets (`.env`, keys, tokens, credentials), report its path and the kind of secret, but never open it, and never print or search its contents.
@@ -75,7 +75,7 @@ Purpose: a goal sharp enough to steer by.
    - observed failures the user has already hit;
    - constraints (data that must not leave, budget, deadlines);
    - what must never happen in this repo;
-   - the autonomy tier the user wants: how much the agent may do without asking. Your recommended answer: the agent asks before each edit and each command (tier B). A tier that lets it run commands without asking gets at least L2.
+   - the autonomy tier the user wants: how much the agent may do without asking. Your recommended answer: the permission mode this session is already in. When it runs commands without asking (Claude Code's auto mode, say), recommend keeping it, and never ask the user to switch it off. If you cannot tell the mode, recommend keeping the one they already work in. The mode does not change the level.
 
    Leave out a topic that the user's opening text, `STATE.md` or the draft goal already settles. The open decisions in `STATE.md` are the frontier. Look facts up yourself; ask only for decisions.
 
@@ -100,7 +100,7 @@ Purpose: decide how much harness this goal needs.
 3. Find the check command yourself: read the package manifest's scripts, the Makefile, the CI files and the test folders. Never ask the user what the test or check command is; name the one you found. If the repo has none, propose the cheapest real check the language offers without installing anything, as the first ticket.
 4. Read [LEVELS.md](references/LEVELS.md) and [PARTS.md](references/PARTS.md), in this skill's own folder. Map each goal line and each observed failure to the parts that answer it.
 5. Apply the ponytail ladder to each part: does it need to exist, is it already in the repo, can an existing tool do it? Drop what fails.
-6. Propose the level: the highest minimum level among the parts that remain, which is the lowest level that meets the goal. A part that answers one of the three safety facts in LEVELS.md still counts toward the level when it is already there: list it as already there. In doubt between two levels, propose the lower one and name the failure that would earn the next. Give one line per part saying what it answers, at most 5 lines per group, with the check command and the secrets you found. Use the grilling format, so "yes" accepts the level you recommend. Then stop and wait: the level is the user's decision.
+6. Propose the level: the highest minimum level among the parts that remain, which is the lowest level that meets the goal. A part that answers one of the two safety facts in LEVELS.md still counts toward the level when it is already there: list it as already there. In doubt between two levels, propose the lower one and name the failure that would earn the next. Give one line per part saying what it answers, at most 5 lines per group, with the check command and the secrets you found. Use the grilling format, so "yes" accepts the level you recommend. Then stop and wait: the level is the user's decision.
 
 The gate. Once the user has chosen a level:
 

@@ -371,8 +371,15 @@ for must in 'Never open a file that holds or may hold secrets' 'whatever the sta
 done
 grep -q 'Stage: S5 Build · Ticket: 03' "$parent" && fail "$parent's example reply equals the e4-resume fixture"
 grep -q 'rescan the repo' "$parent" && fail "$parent still says 'rescan the repo', which reads against S2's own lookups"
-# Aakash, 2026-11-19: a tier that lets the agent run commands without asking is a safety fact (IN7, PR7)
-grep -q 'run commands without asking' "$refs/LEVELS.md" || fail "$refs/LEVELS.md does not count a command-running tier as a safety fact"
+# 2026-11-20, from Aakash's words after his first real run ("the whole point is the auto mode"): how freely the
+# agent runs commands is not a safety fact. The user's own permission mode is the default, and it neither raises
+# the level nor waits for a sandbox. This reverses the ruling of 2026-11-19 (docs/adr/0002, "Levels").
+grep -q 'neither raises the level nor needs a sandbox first' "$refs/LEVELS.md" || fail "$refs/LEVELS.md lets the user's permission mode raise the level"
+grep -q 'at least L2' "$refs/LEVELS.md" && fail "$refs/LEVELS.md still sends a command-running tier to L2"
+grep -q 'at least L2' "$parent" && fail "$parent still sends a command-running tier to L2"
+grep -qF 'never ask the user to switch it off' "$parent" || fail "$parent may ask the user to leave their permission mode"
+# from the same run: a home folder is not a project
+grep -qF 'do not scan it and do not offer `git init`' "$parent" || fail "$parent has no rule for a folder that is not a project"
 grep -q 'Minimal by default' "$refs/PARTS.md" || fail "$refs/PARTS.md does not point at the minimal-by-default rule"
 
 # Ticket 14 (M3): S3 to S5 at L0 and L1. Structure, the interface the eval cases rely on, and four safety
@@ -383,7 +390,7 @@ has() { hf=$1; shift; for must in "$@"; do grep -qiE -- "$must" "$hf" 2>/dev/nul
 # says <file> <sentence>...: the file holds every sentence, word for word
 says() { sf=$1; shift; for must in "$@"; do grep -qF -- "$must" "$sf" 2>/dev/null || fail "$sf lacks the sentence: $must"; done; }
 # the three sentences E1 relies on (PLAN.md, "Carried into M3")
-has "$refs/LEVELS.md" 'IN7, so at least L2' 'is a stated rule' 'never that a safety fact needs no part'
+has "$refs/LEVELS.md" 'never that a safety fact needs no part'
 # interface: the first line `status` gives, and the S2 gate's question about S3
 says "$parent" 'The first line says to run `/diy-harness` to continue.' 'ask whether to start S3'
 # the parent points at one file per stage, and no longer calls S3 unbuilt
@@ -428,10 +435,13 @@ has "$stages/S5.md" 'playbooks/implement\.md' 'Skill tool with `tdd`' 'Skill too
 # The Claude Code facts in S5's guard section (exit code 2, the deny-rule forms, the settings files, the reload) are
 # `docs/adr/0003` G1 to G6: read in its documentation on 2026-11-20, not run.
 # four safety sentences, whole: the proof, the commit, the symlink, the settings
-says "$stages/S5.md" "Wait for the user's yes on the proof before building." \
+says "$stages/S5.md" "Wait for the user's yes on the proof before building, unless the goal lets the agent act without asking" \
   'Commit only after the user approves, and only the paths you staged.' \
   'When either file already has content, ask before creating the symlink, and name what the link would replace.' \
   "Show the exact entries and wait for the user's yes before writing them."
+# From Aakash's words of 2026-11-20 (PR #23): when the goal lets the agent act without asking, S5 keeps moving
+says "$stages/S5.md" 'do not stop before each edit or command' 'Still stop for' \
+  'anything the goal itself says the agent asks before'
 # the wiring check never runs the dangerous action for real, and never opens the secret
 says "$stages/S5.md" 'Both must be harmless if they go through' 'never on the real file' \
   'skip the try and say the guard is untested'

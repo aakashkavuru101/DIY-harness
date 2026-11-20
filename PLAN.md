@@ -118,7 +118,8 @@ Work M2 left for later, where each item stands now:
 
 - Rows 4 and 6 of `docs/review-log.md` (`status` invites no answer; `LEVELS.md` names the mixed tier and a sandbox
   already on): done in ticket 14's text, with the `s0-status-s1` judge and the static pins the third review
-  proposed. Their paid proof moved to the M3 paid run.
+  proposed. Their paid proof moved to the M3 paid run. The levels half was reversed on 2026-11-20
+  (`docs/adr/0002`, "Levels"): auto mode no longer raises the level.
 - E1 can pass on a goal the user never saw (`tickets/13-s2-assess-and-level.md`, "Third review"): still open.
 - E1's strict write check leaves the level turn unchecked from turn 3 on (`tests/test_evals.py`, the `shortcut:`
   note): still open.
@@ -136,7 +137,7 @@ Work M2 left for later, where each item stands now:
 
 GOAL lines: M3, DN4, G1, C1 to C5, C12. Spec: docs/spec/02 section 3, 04 section 3 (S3 to S5), 06 sections 4 and 6,
 07 sections 5 and 6.
-Decisions in force: docs/adr/0001 (D3, D4 and D14 confirmed on 2026-11-20), docs/adr/0002 (its "Departures in M3" row,
+Decisions in force: docs/adr/0001 (D3 and D4 confirmed on 2026-11-20; D14 changed the same day), docs/adr/0002 (its "Departures in M3" row,
 accepted on 2026-11-20), docs/adr/0003 (G1 to G6).
 
 After a level is chosen, `/diy-harness` goes on: S3 designs the parts, S4 cuts them into tickets (skipped at L0), and
@@ -160,6 +161,18 @@ Aakash asked for far less ceremony on 2026-11-20. So in M3:
   0.61 USD is left (`evals/RESULTS.md`).
 - Real use first: Aakash tries `/diy-harness` in a project of his own, and what breaks there is fixed.
 - One katsuo review per change. Rules 3 and 6 of `.claude/CLAUDE.md` still ask for more; their rewording is his.
+
+### From the first real run (2026-11-20)
+
+Aakash ran `/diy-harness` in a project of his own, in auto mode, as far as the first round of S1. Fixed from it:
+
+- Auto mode is the default autonomy answer and no longer raises the level (`docs/adr/0001` D14, `docs/adr/0002`
+  "Levels"); in S5 an agent the goal lets act without asking does not stop before each edit.
+- A home folder, or a folder that only holds other projects, is not scanned.
+- The scan's report is waited for: no reply that only says it is still running.
+- The README says how to load the plugin and what to type.
+
+S2 to S5 have not been reached in a real run yet.
 
 ### Owed before M3 closes
 

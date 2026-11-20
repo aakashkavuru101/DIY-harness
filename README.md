@@ -1,6 +1,17 @@
 # DIY-harness
 DIY-harness: build a custom agent harness for your project with /diy-harness
 
+## Try it
+
+There is no installer yet. Load the plugin from a clone of this repo, from inside the project you want a harness for:
+
+```
+cd your-project
+claude --plugin-dir /path/to/DIY-harness
+```
+
+Then type `/diy-harness:diy-harness` (loaded this way, the command carries the plugin's name in front). Work in whatever permission mode you normally use: the harness takes auto mode as it finds it and does not ask you to switch it off.
+
 ## The command
 
 Run `/diy-harness` in your project. It builds the harness with you one stage at a time, and at the end of each stage it stops and asks before the next. Its state lives in `.harness/STATE.md`, so a later `/diy-harness` carries on where you stopped.
