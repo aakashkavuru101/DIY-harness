@@ -3,7 +3,7 @@
 - Stage: S5 Build
 - Level: L1, because a guard must refuse failing commits (`.harness/GOAL.md`)
 - Current ticket: 03, `.harness/tickets/03-pre-commit-guard.md`
-- Next step: write the must-block and must-allow tests for the pre-commit guard.
+- Next step: agree the proof for ticket 03 with the user, then write the pre-commit guard's must-block and must-allow tests.
 
 ## Open decisions
 

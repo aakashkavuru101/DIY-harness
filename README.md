@@ -1,6 +1,28 @@
 # DIY-harness
 DIY-harness: build a custom agent harness for your project with /diy-harness
 
+## The command
+
+Run `/diy-harness` in your project. It builds the harness with you one stage at a time, and at the end of each stage it stops and asks before the next. Its state lives in `.harness/STATE.md`, so a later `/diy-harness` carries on where you stopped.
+
+| Stage | What happens |
+| --- | --- |
+| S0 Orient | Resumes from `.harness/STATE.md`, or scans the repo and starts cleanly |
+| S1 Lock the goal | Questions with recommended answers, then `.harness/GOAL.md`, which you approve line by line |
+| S2 Assess and choose a level | Audits the repo and proposes a level, with the reason; you choose |
+| S3 Design | The smallest set of parts that meets the goal, each with its proof; every other idea is parked |
+| S4 Slice | One ticket per part, in build order. Skipped at L0 |
+| S5 Build | One ticket per pass: the proof goes red, the part is built, the proof goes green, the change is reviewed, and it is committed when you say yes |
+
+`/diy-harness status` reports the stage, the level, the ticket and the open decisions, and changes nothing. `/diy-harness level` assesses the repo again.
+
+A level is a ceiling: a part is built only when a goal line or an observed failure calls for it.
+
+- **L0** holds the goal, the state with its spec, a block of pointers between markers in your `AGENTS.md` (with `CLAUDE.md` linked to it, or kept and pointing at it when you already have one), and one check command that goes red on a break.
+- **L1** can add a spec and tickets, a glossary and decision records, tests at seams you agree, a two-axis review per change, a pre-commit hook that runs the check, and guards against secret reads and destructive commands. Each guard is a script with one test it must block and one it must allow.
+
+Not built yet: stage S6 (run and retro), Codex, and levels above L1. At L2 or above, S3 parks the higher parts and says why.
+
 ## Off switches
 
 DIY-harness adds two rule sets to every session: ponytail (build rules) and i-have-adhd (output rules). Switch them off with a prompt that is exactly one of these:

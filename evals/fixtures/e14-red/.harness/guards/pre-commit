@@ -1,0 +1,5 @@
+#!/bin/sh
+# QA2: refuse a commit while the check is red (ticket 02). Installed as .git/hooks/pre-commit.
+# CHECK is the check command; its tests hand it a stand-in, so they never run a real commit.
+check=${CHECK:-python3 -m unittest -q}
+$check || { echo "pre-commit: refused, the check is red ($check). Fix the code until it passes, then commit again." >&2; exit 1; }
