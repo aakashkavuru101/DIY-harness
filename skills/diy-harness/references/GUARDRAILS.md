@@ -45,9 +45,9 @@ Under all six, a clean environment: a secret that is not in the agent's reach ca
 
 ## Autonomy tiers and human gates
 
-PR7 sets what the agent may do without asking. Propose the lowest tier that meets the goal: tier B at L0 and L1, and tier C only once its "Needs first" parts exist.
+PR7 records what the agent may do without asking. The default is the permission mode the user already works in: never ask them to give up an auto mode, and do not hold a tier back until other parts exist. "Safest with" names the parts that make a tier safer; propose each when its own trigger has fired.
 
-| Tier | The agent may | Needs first |
+| Tier | The agent may | Safest with |
 | --- | --- | --- |
 | A. Read-only | Read, search, plan | Nothing |
 | B. Ask on write | Edit files and run commands, each approved | PR1 |

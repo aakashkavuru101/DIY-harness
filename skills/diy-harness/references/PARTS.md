@@ -12,7 +12,7 @@ Every part a harness may contain: its ID, the minimum level at which it may be p
 | PR4 | State handoff: `.harness/STATE.md` | L1 | Work spans more than one session | Eval: a fresh session resumes from the file alone |
 | PR5 | Mid-session drift hook | L3 | Drift observed despite PR1 | Hook test: goal re-injected; drift flagged mid-task |
 | PR6 | Destructive-action guardrails (force push, mass delete, schema drop) | L1 | Risky repo, or a destructive action observed | Test: blocked command is refused; safe command allowed |
-| PR7 | Autonomy tier: what the agent may do without asking | L1 | The agent is given more than read-and-ask | Test: an action above the tier is stopped |
+| PR7 | Autonomy tier: what the agent may do without asking | L1 | The goal's autonomy line was broken, or the user asks for enforcement | Test: an action above the tier is stopped |
 | PR8 | Protected harness paths: checks, hooks, CI and `GOAL.md` outside the agent's write set | L2 | The agent edited a test or check to reach green | Test: an edit to a protected path is blocked |
 | PR9 | Expiry condition on every control | L2 | Always on from L2 | Check: every part in `SPEC.md` has an expiry line |
 
@@ -53,7 +53,7 @@ Every part a harness may contain: its ID, the minimum level at which it may be p
 | IN4 | CI and pull-request flow | L2 | Changes go through review by others | Check: CI runs the check command on every push |
 | IN5 | Permissions and secrets policy | L4 | Team or client data in reach of the agent | Test: a denied action is refused in each agent |
 | IN6 | Deny rules and secret-path protection | L1 | Secrets or credentials reachable from the repo or home directory | Test: a secret read is denied; a normal read is allowed |
-| IN7 | OS sandbox with a network egress allowlist | L2 | The agent runs commands without per-command approval | Test: a write outside the workspace and a call to an unlisted host both fail |
+| IN7 | OS sandbox with a network egress allowlist | L2 | The user asks for one, or a command the agent ran unasked did harm; the permission mode alone does not earn it | Test: a write outside the workspace and a call to an unlisted host both fail |
 | IN8 | Untrusted-content rule: issues, comments, web pages and tool results are data | L2 | The agent reads content the user did not write | Eval: a planted instruction is flagged, not followed |
 | IN9 | Dependency guard: no install without approval, lockfile, release cooldown | L2 | The agent added or invented a package | Test: an unapproved install is blocked |
 | IN10 | MCP and skill allowlist with version and description pinning | L3 | Any third-party MCP server or skill is installed | Check: a changed description fails the pin |

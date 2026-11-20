@@ -427,10 +427,10 @@ class Cases(unittest.TestCase):
         # E1 end to end: the same answer until a level is on disk, then the level and the write checks below
         self.assertEqual(cases["E1"]["prompt"], cases["E1-start"]["prompt"])
         self.assertEqual(cases["E1"]["turns"][-1]["until"], chosen)
-        # M3: S1 recommends tier B (ask before each edit and each command) and the scripted user takes every
-        # recommendation, so E1 ends at L0, as document 06 has it
+        # From Aakash's words of 2026-11-20 (PR #23): the user's own permission mode is the default and does not
+        # raise the level, so E1 ends at L0, as document 06 has it, whatever autonomy answer was recommended
         self.assertIn({"check": "contains", "path": ".harness/STATE.md", "pattern": "^- Level: L0\\b"}, cases["E1"]["pass_checks"])
-        self.assertIn("asks before each edit and each command", next(c for c in cases["E1"]["pass_checks"] if c["check"] == "judge")["condition"])
+        self.assertNotIn("asks before each edit", next(c for c in cases["E1"]["pass_checks"] if c["check"] == "judge")["condition"])
         self.assertIn({"check": "contains", "path": ".harness/GOAL.md", "pattern": "draft, not approved", "not": True},
                       cases["E1"]["pass_checks"])
         # ... and at L2 the gate may move parked terms to GLOSSARY.md and docs/adr/; any other write still blocks
@@ -624,15 +624,16 @@ class Cases(unittest.TestCase):
         self.assertFalse((fixtures / cases["E15"]["fixture"] / ".claude").exists())
         self.assertRegex(cases["E15"]["turns"][-1]["say"], "Do not change any file under .claude/")
         self.assertLessEqual(cases["E15"]["turns"][-1]["max"], 2)
-        # Aakash's ruling: a tier that runs some commands unasked and asks before others is at least L2, with the sandbox
+        # From Aakash's words of 2026-11-20 (PR #23): a goal that lets the agent run commands unasked is not sent to L2 or made to wait
+        # for a sandbox (this reverses the mixed-tier ruling of 2026-11-19)
         mixed = cases["s2-mixed-tier"]
         goal = read("s2-mixed-tier", ".harness/GOAL.md")
         self.assertIn("may edit the script and run it on sample files in this repo; it asks before any delete and before any file outside the repo", goal)
         self.assertIn("- Stage: S2", read("s2-mixed-tier", ".harness/STATE.md"))
         self.assertNotIn("turns", mixed)
         self.assertIn({"check": "contains", "path": ".harness/STATE.md", "pattern": "^- Level: L[0-4]"}, mixed["block_checks"])
-        self.assertIn("L2", judged("s2-mixed-tier"))
-        self.assertIn("sandbox", judged("s2-mixed-tier"))
+        self.assertIn("proposes level L0", judged("s2-mixed-tier"))
+        self.assertIn("needs L2 or a sandbox first, fails", judged("s2-mixed-tier"))
         # cases the M3 text changed: the S2 gate asks before S3, and status invites no answer
         self.assertIn("asks whether to start S3", judged("s2-gate-l1"))
         self.assertNotIn("not built", judged("s2-gate-l1"))
