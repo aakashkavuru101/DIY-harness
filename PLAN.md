@@ -136,8 +136,8 @@ Work M2 left for later, where each item stands now:
 
 GOAL lines: M3, DN4, G1, C1 to C5, C12. Spec: docs/spec/02 section 3, 04 section 3 (S3 to S5), 06 sections 4 and 6,
 07 sections 5 and 6.
-Decisions in force: docs/adr/0001 (D3, D4 and D14 confirmed on 2026-11-20), docs/adr/0002 (its "Departures in M3" row
-awaits Aakash), docs/adr/0003 (G1 to G6).
+Decisions in force: docs/adr/0001 (D3, D4 and D14 confirmed on 2026-11-20), docs/adr/0002 (its "Departures in M3" row,
+accepted on 2026-11-20), docs/adr/0003 (G1 to G6).
 
 After a level is chosen, `/diy-harness` goes on: S3 designs the parts, S4 cuts them into tickets (skipped at L0), and
 S5 builds one ticket at a time. M3 is done when (document 06 section 6, GOAL.md DN4):
@@ -167,7 +167,6 @@ Aakash asked for far less ceremony on 2026-11-20. So in M3:
   because the text each of them reads has changed. The last full run (16 cases at 3 trials) cost 7.32 USD; no S3
   to S5 case has ever run, so their cost is not measured.
 - The real-project trials: one L0 and one L1 harness, signed off.
-- Aakash's decisions on the six departures from the spec (`docs/adr/0002`, "Departures in M3").
 - What the review of this change left for the trial (`tickets/14-s3-to-s5.md`, "Left for the trial").
 
 Out of M3: S6 (a resume there reports that it is not built yet), Codex, `install.sh`, and everything above L1.
