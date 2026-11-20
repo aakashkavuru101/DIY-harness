@@ -22,6 +22,8 @@ Capture the diff command once: `git diff <fixed-point>...HEAD` (three-dot, so th
 
 Before going further, confirm the fixed point resolves (`git rev-parse <fixed-point>`) and the diff is non-empty. A bad ref or empty diff should fail here, not inside two parallel sub-agents.
 
+When the caller names staged work instead of a fixed point, the diff command is `git diff --cached`, there is no commit list, and a repo with no commit yet is fine: confirm only that the diff is non-empty.
+
 ### 2. Identify the spec source
 
 Look for the originating spec, in this order:
@@ -55,6 +57,19 @@ Each smell reads *what it is* → *how to fix*; match it against the diff:
 - **Middle Man**: a class or function that mostly just delegates onward. → cut it, call the real target direct.
 - **Refused Bequest**: a subclass or implementer that ignores or overrides most of what it inherits. → drop the inheritance, use composition.
 
+The Standards axis also always carries the **review checklist** below, from ponytail's review skill: the smell baseline asks how the change reads, the checklist asks whether it works. Order of importance: correct, safe, holds under load, tested, fast, lean. Three rules bind it:
+
+- **Read the connected code.** Callers of every changed function, the functions it calls, and the tests: a change can break code it does not touch.
+- **No case, no finding.** Every finding names a concrete case: "this input or situation leads to this wrong result".
+- **A marked shortcut is a decision.** A `shortcut:` comment that names its limit is not a finding, unless the expected load already crosses it.
+
+1. **Bug**: wrong result, crash, missed edge case (empty, zero, last item, rounding, time zones), a caller broken by the change, a fix applied in one caller while the shared function stays broken.
+2. **Risk**: security holes (injection, weak randomness, secrets, missing checks on input from users), data loss (errors swallowed, writes in the wrong order, no transaction).
+3. **Scale**: fine for one user, wrong for many: check-then-write races, the same work done by every process, memory or lists that only grow, a query per item, O(n^2) on big input.
+4. **Missing test**: risky new logic (a branch, a parser, money, security, data writes, a bug fix) with no test that fails when it breaks. One good test, not coverage.
+5. **Speed**: a big slowdown is a problem; a small win (work repeated in a hot loop) is a suggestion.
+6. **Lean**: code that should not exist or should be smaller. The smell baseline belongs here, plus: dead code, unused options and speculative features (delete); a helper the repo already has (reuse it, and name its path); what the standard library or the platform already does, or a new dependency for a few lines; near-copies that must change together (merge).
+
 ### 4. Spawn both sub-agents in parallel
 
 Issue both sub-agent calls together, in the foreground, and aggregate the reports they return.
@@ -62,8 +77,8 @@ Issue both sub-agent calls together, in the foreground, and aggregate the report
 **Standards sub-agent prompt** should include:
 
 - The full diff command and commit list.
-- The list of standards-source files you found in step 3, **plus the smell baseline from step 3** pasted in full (the sub-agent has no other access to it).
-- The brief: "Report, per file/hunk where relevant, (a) every place the diff violates a documented standard: cite the standard (file + the rule); and (b) any baseline smell you spot: name it and quote the hunk. Distinguish hard violations from judgement calls: documented-standard breaches can be hard, but baseline smells are always judgement calls, and a documented repo standard overrides the baseline. Skip anything tooling enforces. Under 400 words."
+- The list of standards-source files you found in step 3, **plus the smell baseline and the review checklist from step 3**, both pasted in full (the sub-agent has no other access to them).
+- The brief: "Report, per file/hunk where relevant, (a) every place the diff violates a documented standard: cite the standard (file + the rule); (b) any baseline smell you spot: name it and quote the hunk; and (c) any checklist finding: name the item and give its concrete case. Distinguish hard violations from judgement calls: documented-standard breaches can be hard, and so can a checklist bug or risk with a concrete case, but baseline smells are always judgement calls, and a documented repo standard overrides the baseline. Skip anything tooling enforces. Under 400 words."
 
 **Spec sub-agent prompt** should include:
 
